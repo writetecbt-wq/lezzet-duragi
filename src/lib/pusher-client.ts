@@ -1,0 +1,17 @@
+import PusherClient from "pusher-js";
+
+// Browser-side Pusher instance — only imported in Client Components
+let pusherClientInstance: PusherClient | null = null;
+
+export function getPusherClient(): PusherClient {
+  if (!pusherClientInstance) {
+    pusherClientInstance = new PusherClient(
+      process.env.NEXT_PUBLIC_PUSHER_KEY!,
+      {
+        cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER!,
+        authEndpoint: "/api/pusher/auth",
+      }
+    );
+  }
+  return pusherClientInstance;
+}

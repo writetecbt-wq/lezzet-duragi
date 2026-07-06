@@ -1,0 +1,110 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+
+// ─────────────────────────────────────────────
+// CORE MODELS
+// ─────────────────────────────────────────────
+
+model Restaurant {
+  id         String     @id @default(cuid())
+  name       String
+  logoUrl    String?
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+
+  categories Category[]
+  tables     Table[]
+
+  @@map("restaurants")
+}
+
+model Category {
+  id           String     @id @default(cuid())
+  name         String
+  imageUrl     String?
+  sortOrder    Int        @default(0)
+  restaurantId String
+
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  products     Product[]
+
+  @@map("categories")
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  price       Decimal  @db.Decimal(10, 2)
+  imageUrl    String?
+  isAvailable Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  categoryId  String
+
+  category    Category    @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  orderItems  OrderItem[]
+
+  @@map("products")
+}
+
+model Table {
+  id           String   @id @default(cuid())
+  tableNumber  Int
+  qrCodeUrl    String?
+  isOccupied   Boolean  @default(false)
+  restaurantId String
+
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  orders       Order[]
+
+  @@unique([restaurantId, tableNumber])
+  @@map("tables")
+}
+
+// ─────────────────────────────────────────────
+// ORDER MODELS
+// ─────────────────────────────────────────────
+
+enum OrderStatus {
+  PENDING     // Yeni gelen sipariş
+  PREPARING   // Hazırlanıyor
+  COMPLETED   // Tamamlandı
+  CANCELLED   // İptal edildi
+}
+
+model Order {
+  id          String      @id @default(cuid())
+  tableId     String
+  totalAmount Decimal     @db.Decimal(10, 2)
+  status      OrderStatus @default(PENDING)
+  notes       String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  table       Table       @relation(fields: [tableId], references: [id], onDelete: Restrict)
+  items       OrderItem[]
+
+  @@map("orders")
+}
+
+model OrderItem {
+  id        String  @id @default(cuid())
+  orderId   String
+  productId String
+  quantity  Int
+  unitPrice Decimal @db.Decimal(10, 2)
+
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product   Product @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  @@map("order_items")
+}
