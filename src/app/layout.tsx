@@ -1,27 +1,32 @@
 import type { Metadata, Viewport } from "next";
-import { Geist } from "next/font/google";
+import { Playfair_Display, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 
-const geist = Geist({
-  variable: "--font-geist-sans",
+const playfair = Playfair_Display({
+  variable: "--font-playfair",
+  subsets: ["latin"],
+});
+
+const jakarta = Plus_Jakarta_Sans({
+  variable: "--font-jakarta",
   subsets: ["latin"],
 });
 
 export const metadata: Metadata = {
   title: {
-    default: "Lezzet Durağı",
-    template: "%s | Lezzet Durağı",
+    default: "L'Essence",
+    template: "%s | L'Essence",
   },
   description:
-    "QR kodunuzu okutun, menüyü keşfedin ve kolayca sipariş verin.",
-  keywords: ["restoran", "menü", "sipariş", "QR kod"],
+    "QR kodunuzu okutun, gastronomi deneyimini keşfedin ve sipariş verin.",
+  keywords: ["restoran", "fine dining", "menü", "sipariş", "QR kod"],
 };
 
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
-  themeColor: "#f97316",
+  themeColor: "#C5A059",
 };
 
 export default function RootLayout({
@@ -30,8 +35,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="tr" className={geist.variable}>
-      <body className="min-h-dvh">{children}</body>
+    <html lang="tr" className={`${playfair.variable} ${jakarta.variable}`}>
+      <body className="min-h-dvh antialiased bg-background text-on-surface">
+        {children}
+      </body>
     </html>
   );
 }

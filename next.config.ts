@@ -3,7 +3,6 @@ import path from "path";
 
 const nextConfig: NextConfig = {
   turbopack: {
-    // Set project root to avoid false positive lockfile warning
     root: path.resolve(__dirname),
   },
   images: {
@@ -11,6 +10,18 @@ const nextConfig: NextConfig = {
       {
         protocol: "https",
         hostname: "images.unsplash.com",
+      },
+      {
+        protocol: "https",
+        hostname: "**.unsplash.com",
+      },
+      {
+        protocol: "https",
+        hostname: "**.cloudinary.com",
+      },
+      {
+        protocol: "https",
+        hostname: "**.pexels.com",
       },
     ],
   },

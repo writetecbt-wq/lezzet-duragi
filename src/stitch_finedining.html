@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+
+<html class="light" lang="tr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+<title>L'Essence - Gastronomi Deneyimi</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&amp;family=Plus+Jakarta+Sans:wght@300;400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary": "#C5A059", // Gold accent
+                        "background": "#FDFCFB", // Off-white/Cream
+                        "surface": "#FFFFFF",
+                        "on-surface": "#1A1A1A", // Deep charcoal
+                        "on-surface-variant": "#666666",
+                        "outline": "#E5E1DA",
+                        "accent-dark": "#2C2C2C",
+                    },
+                    "fontFamily": {
+                        "serif": ["Playfair Display", "serif"],
+                        "sans": ["Plus Jakarta Sans", "sans-serif"],
+                        "display-lg": ["Playfair Display"],
+                        "headline-lg-mobile": ["Playfair Display"],
+                        "title-md": ["Playfair Display"],
+                        "body-lg": ["Plus Jakarta Sans"],
+                        "body-sm": ["Plus Jakarta Sans"],
+                        "label-caps": ["Plus Jakarta Sans"],
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body { background-color: #FDFCFB; letter-spacing: 0.01em; }
+        .glass-crystal { 
+            background: rgba(255, 255, 255, 0.4); 
+            backdrop-filter: blur(12px); 
+            -webkit-backdrop-filter: blur(12px); 
+            border: 1px solid rgba(255, 255, 255, 0.6);
+        }
+        .glass-dark-luxury { 
+            background: rgba(26, 26, 26, 0.95); 
+            backdrop-filter: blur(20px); 
+            -webkit-backdrop-filter: blur(20px); 
+        }
+        .luxury-shadow { box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.08); }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        @keyframes fade-in-up {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in-up {
+            animation: fade-in-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        .gold-underline {
+            position: relative;
+        }
+        .gold-underline::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 0;
+            height: 1px;
+            background-color: #C5A059;
+            transition: width 0.3s ease;
+        }
+        .gold-underline:hover::after {
+            width: 100%;
+        }
+
+        .img-zoom-hover img {
+            transition: transform 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .img-zoom-hover:hover img {
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body class="font-sans text-on-surface antialiased bg-background pb-32">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 glass-crystal border-b border-outline/30 flex justify-between items-center px-6 py-5">
+<div class="flex flex-col items-center mx-auto text-center">
+<h1 class="font-serif text-2xl tracking-widest uppercase text-on-surface">L'Essence</h1>
+<div class="flex items-center gap-2 mt-1">
+<span class="w-1 h-1 bg-primary rounded-full"></span>
+<span class="font-label-caps text-[10px] tracking-[0.2em] uppercase text-on-surface-variant">Table 05 • Salon Privé</span>
+</div>
+</div>
+<button class="absolute right-6 p-2 text-on-surface/80">
+<div class="relative">
+<span class="material-symbols-outlined font-light text-[24px]">shopping_bag</span>
+<span class="absolute -top-1 -right-1 bg-primary text-white text-[9px] w-3.5 h-3.5 flex items-center justify-center rounded-full">2</span>
+</div>
+</button>
+</header>
+<!-- Category Nav -->
+<div class="sticky top-[73px] z-40 bg-background/80 backdrop-blur-md py-6 border-b border-outline/20">
+<div class="flex overflow-x-auto hide-scrollbar px-6 gap-8 justify-start md:justify-center">
+<button class="flex-shrink-0 text-primary border-b border-primary pb-1 font-sans font-medium text-xs tracking-widest uppercase transition-all">Özel Seçkiler</button>
+<button class="flex-shrink-0 text-on-surface-variant pb-1 font-sans font-medium text-xs tracking-widest uppercase transition-all hover:text-on-surface">Ana Yemekler</button>
+<button class="flex-shrink-0 text-on-surface-variant pb-1 font-sans font-medium text-xs tracking-widest uppercase transition-all hover:text-on-surface">Degüstasyon</button>
+<button class="flex-shrink-0 text-on-surface-variant pb-1 font-sans font-medium text-xs tracking-widest uppercase transition-all hover:text-on-surface">Kav</button>
+</div>
+</div>
+<!-- Main Content -->
+<main class="px-6 pt-10 flex flex-col gap-16">
+<!-- Section: Chef's Tasting (Şefin Tadım Menüsü) -->
+<section class="animate-fade-in-up" style="animation-delay: 0.1s;">
+<div class="flex flex-col items-center mb-10 text-center">
+<span class="font-serif italic text-primary text-sm mb-2">Münhasır Deneyim</span>
+<h2 class="font-serif text-2xl tracking-tight text-on-surface">Şefin Tadım Menüsü</h2>
+<div class="w-12 h-px bg-primary/30 mt-4"></div>
+</div>
+<div class="flex flex-col gap-12">
+<!-- Product Card 1 -->
+<article class="group flex flex-col gap-4">
+<div class="relative aspect-[16/9] overflow-hidden rounded-sm bg-outline/20 img-zoom-hover">
+<img alt="Adana Kebap" class="w-full h-full object-cover grayscale-[20%] group-hover:grayscale-0" data-alt="Fine dining presentation of Kebab" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCUqDPjMJFKj4bA_yOokVtKF1TZKSPg9I66WFAYldX2Pz1IRewgod1YEmuTucVrduWvgjtQLdvJ5w3FK9Nv52U-8RbrOSanvtu-3VKibZP3G0hu2gICmamEO6AlwKgkF2wVjoRb-OUKMJbwmV6dgZmJTES52NVQGF7gZx46ahHEuKrwQrr6cxbeXMgVtZr9Q-d8Lk1tmwtHx_ezT-Q8vn0VD829fAJoaWvfbAV4doBSNFeZifRXfPXYfVmxHAEjxFEmMDiOTYZ1Zw"/>
+</div>
+<div class="flex justify-between items-baseline">
+<div class="flex flex-col gap-1 max-w-[80%]">
+<h3 class="font-serif text-xl text-on-surface tracking-tight">Zırh Kıyma &amp; Meşe Odunu Ateşinde Kebap</h3>
+<p class="font-sans text-[13px] leading-relaxed text-on-surface-variant font-light">Geleneksel tekniklerle hazırlanan kuzu eti, isli kapya biber püresi ve sumaklı arpacık soğan konfiti ile.</p>
+</div>
+<div class="flex flex-col items-end">
+<span class="font-sans text-sm font-medium tracking-tighter text-on-surface">₺340</span>
+<button class="mt-3 w-8 h-8 rounded-full border border-outline flex items-center justify-center text-primary hover:bg-primary hover:text-white transition-all duration-500">
+<span class="material-symbols-outlined text-[18px]">add</span>
+</button>
+</div>
+</div>
+</article>
+<!-- Product Card 2: In Cart -->
+<article class="group flex flex-col gap-4">
+<div class="relative aspect-[16/9] overflow-hidden rounded-sm bg-outline/20 img-zoom-hover">
+<div class="absolute top-4 left-4 z-10">
+<span class="bg-primary/90 text-white font-sans text-[9px] tracking-[0.2em] uppercase px-3 py-1.5 backdrop-blur-sm">Seçildi</span>
+</div>
+<img alt="Manda Mozzarella" class="w-full h-full object-cover grayscale-[20%] group-hover:grayscale-0" data-alt="Gourmet Pizza" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAJ105u6YA6dSjB9b5jISbZKt1eEuBQTK5qYVG4bCxL8MraKMQXbp26vx3l-WgNverdl3CjY9FtCJiBcgNN9gAeSZxXhefRGt6mt9vFmGr2UAF-R7Q-XyPaN3VVJ2m_6choXfpUQbAUIsYrJb7gYo7oH9ieJ09IWpE3saBdAIUqKvmyDWZ_h7sgloqKkFLy1zjc3-O8x6jZCd8tqbcvUOWsqozrs90BEiBPM9zcy1ARNBZDzRrJzvouB7PrthI1uM8JYAUKTT2hdw"/>
+</div>
+<div class="flex justify-between items-baseline">
+<div class="flex flex-col gap-1 max-w-[70%]">
+<h3 class="font-serif text-xl text-on-surface tracking-tight">Manda Mozzarella &amp; Fesleğenli El Yapımı Pizza</h3>
+<p class="font-sans text-[13px] leading-relaxed text-on-surface-variant font-light">48 saat fermente edilmiş hamur, San Marzano domatesleri ve taze toplanmış fesleğen yaprakları.</p>
+</div>
+<div class="flex flex-col items-end gap-3">
+<span class="font-sans text-sm font-medium tracking-tighter text-on-surface">₺280</span>
+<div class="flex items-center border border-outline rounded-full px-1 py-1">
+<button class="w-6 h-6 flex items-center justify-center text-on-surface-variant hover:text-on-surface">
+<span class="material-symbols-outlined text-[14px]">remove</span>
+</button>
+<span class="font-sans text-xs font-bold w-5 text-center">1</span>
+<button class="w-6 h-6 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[14px]">add</span>
+</button>
+</div>
+</div>
+</div>
+</article>
+</div>
+</section>
+<!-- Section: Patisserie -->
+<section class="animate-fade-in-up pb-10" style="animation-delay: 0.3s;">
+<div class="flex flex-col items-center mb-10 text-center">
+<span class="font-serif italic text-primary text-sm mb-2">Final Dokunuşları</span>
+<h2 class="font-serif text-2xl tracking-tight text-on-surface">Pastane &amp; İçecek</h2>
+<div class="w-12 h-px bg-primary/30 mt-4"></div>
+</div>
+<div class="grid grid-cols-2 gap-x-6 gap-y-12">
+<!-- Item 3: Sold Out -->
+<article class="flex flex-col gap-3 opacity-50 grayscale pointer-events-none">
+<div class="aspect-square overflow-hidden rounded-sm bg-outline/10">
+<img alt="Tiramisu" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCvW515wKnoosUiRmATiydrykiJiq5VGft3yFCWARCGAS8avqB7oVuN3C_sgxrcDQt1V_4NfO6SA-Dti8-QYyimohNsdDSSmF2oYM28UW6r-R8HmcXtYO5OBn67_C7rNBk2PHUWf9faq0oGoIEFdxe7L6SXS2V2rSn9tLAcIeuRGzwOf0Xcg0hXueOQKHXcsuMpoDoiAfIiG_yF9WWYdw73Ab4H603qDWwGvW722E8GsPC8__K3VCYBr7S3MpYfzbQiYIcR4ipmvQ"/>
+</div>
+<div class="flex flex-col gap-1">
+<h3 class="font-serif text-md text-on-surface leading-tight">Klasik Venedik Tiramisu</h3>
+<span class="font-sans text-[10px] uppercase tracking-widest text-on-surface-variant">Tükendi</span>
+</div>
+</article>
+<!-- Item 4 -->
+<article class="flex flex-col gap-3">
+<div class="aspect-square overflow-hidden rounded-sm bg-outline/10 img-zoom-hover">
+<img alt="Limonata" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCcVdIHoUEt47tjRBGBtLRicCSJUlDUYNv0bQo9P_FGBWFY258SXHxU9KUnW7pylGy1xkgjt2RVb444tPJ-RJXrRqKz4GF-xJWZ1WPjO82zarVgFof5zEx95y9vLY98h72TRSrgDAtU1Bjk0Z2D0eFjmraJAveImGHzbdOuLdzUTjkF7kqgVEqLYYvStctGOTpI0AAdi8eGAH5lzBtugayADrH9YA9QQINEoCohuUV9bG2MPJW8C6GI9NDbC0L2pENipt_PmrCJkg"/>
+</div>
+<div class="flex flex-col gap-2">
+<div class="flex justify-between items-start">
+<h3 class="font-serif text-md text-on-surface leading-tight">Nane &amp; Misket Limon Sefası</h3>
+<span class="font-sans text-xs text-on-surface">₺90</span>
+</div>
+<button class="mt-1 w-full border border-outline py-2 text-[10px] uppercase tracking-[0.2em] text-on-surface-variant hover:text-primary transition-colors">
+                        Ekle
+                    </button>
+</div>
+</article>
+</div>
+</section>
+</main>
+<!-- Floating Cart Action Bar -->
+<div class="fixed bottom-0 left-0 w-full z-50 px-6 pb-8 pt-4 bg-gradient-to-t from-background via-background/90 to-transparent pointer-events-none">
+<button class="w-full glass-dark-luxury text-white flex items-center justify-between px-8 py-5 rounded-sm shadow-2xl pointer-events-auto active:scale-[0.98] transition-transform duration-300">
+<div class="flex items-center gap-4">
+<div class="bg-primary/20 text-primary w-6 h-6 rounded-full flex items-center justify-center font-sans text-[11px] font-bold">
+                2
+            </div>
+<span class="font-sans text-[11px] font-bold tracking-[0.25em] uppercase">Sipariş Detayları</span>
+</div>
+<span class="font-sans text-sm font-light text-primary tracking-tighter" id="cart-total-price">₺620,00</span>
+</button>
+</div>
+<script>
+    (function() {
+        // Simple subtle pulse for the total price every few seconds
+        setInterval(() => {
+            const price = document.getElementById('cart-total-price');
+            if(price) {
+                price.style.transition = 'all 1.2s ease';
+                price.style.opacity = '0.7';
+                setTimeout(() => {
+                    price.style.opacity = '1';
+                }, 1200);
+            }
+        }, 5000);
+    })();
+</script>
+</body></html>
