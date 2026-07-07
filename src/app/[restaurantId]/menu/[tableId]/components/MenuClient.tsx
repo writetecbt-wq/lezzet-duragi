@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { ShoppingCart, Minus, Plus, Star, Clock } from "lucide-react";
+import { ShoppingCart, Minus, Plus, Star, Clock, AlertTriangle } from "lucide-react";
 import { useCartStore } from "@/store/cart.store";
 import { useProductStore, PRODUCT_TAG_META } from "@/store/product.store";
+import { useTableStore } from "@/store/table.store";
 import { formatPrice, MOCK_CATEGORIES } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
 
@@ -15,6 +16,16 @@ export function MenuClient({ tableNumber }: MenuClientProps) {
   const [activeCategory, setActiveCategory] = useState(MOCK_CATEGORIES[0].id);
   const { addItem, items, updateQuantity, openCart, totalItems, totalPrice } = useCartStore();
   const { products } = useProductStore();
+  const { totalTables } = useTableStore();
+
+  // ── Masa Doğrulama ──
+  const tableNum = Number(tableNumber);
+  const isValidTable =
+    Number.isInteger(tableNum) && tableNum >= 1 && tableNum <= totalTables;
+
+  if (!isValidTable) {
+    return <InvalidTablePage tableNumber={tableNumber} totalTables={totalTables} />;
+  }
 
   const categoryProducts = products.filter((p) => p.categoryId === activeCategory);
 
@@ -350,5 +361,51 @@ function ServiceRequestButton({
         </>
       )}
     </button>
+  );
+}
+
+// ─── Invalid Table Page ───────────────────────────────────────────────────────
+function InvalidTablePage({
+  tableNumber,
+  totalTables,
+}: {
+  tableNumber: string;
+  totalTables: number;
+}) {
+  return (
+    <div className="min-h-dvh bg-[#FAFAFA] flex flex-col items-center justify-center px-6 text-center">
+      {/* Icon */}
+      <div className="w-24 h-24 rounded-3xl bg-red-50 border-2 border-red-100 flex items-center justify-center mb-6 shadow-lg shadow-red-100">
+        <AlertTriangle className="w-12 h-12 text-red-400" />
+      </div>
+
+      {/* Text */}
+      <h1 className="text-2xl font-black text-zinc-900 tracking-tight mb-2">
+        Geçersiz Masa
+      </h1>
+      <p className="text-zinc-500 text-base leading-relaxed max-w-xs">
+        {`"Masa ${tableNumber}"`} bu restoranda mevcut değil.
+        <br />
+        Lütfen masa üzerindeki doğru QR kodu okutun.
+      </p>
+
+      {/* Info pill */}
+      <div className="mt-6 px-5 py-3 bg-white border border-zinc-200 rounded-2xl shadow-sm flex items-center gap-3">
+        <div className="w-8 h-8 bg-brand-50 rounded-xl flex items-center justify-center flex-shrink-0">
+          <span className="text-brand-500 font-black text-sm">{totalTables}</span>
+        </div>
+        <p className="text-sm text-zinc-600">
+          Bu restoranda{" "}
+          <span className="font-bold text-zinc-900">{totalTables} masa</span>{" "}
+          bulunuyor.
+        </p>
+      </div>
+
+      {/* Branding */}
+      <div className="mt-12 flex items-center gap-2 text-zinc-400">
+        <span className="text-2xl">🍽️</span>
+        <span className="font-bold text-zinc-600">Lezzet Durağı</span>
+      </div>
+    </div>
   );
 }
