@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { X, Upload, Check, AlertCircle, ImageOff } from "lucide-react";
-import { useProductStore, Product } from "@/store/product.store";
+import { useProductStore, Product, PRODUCT_TAG_META, ProductTag } from "@/store/product.store";
 import { cn } from "@/lib/utils";
 
 type Props = {
@@ -17,6 +17,7 @@ type FormData = {
   imageUrl: string;
   categoryId: string;
   isAvailable: boolean;
+  tags: ProductTag[];
 };
 
 type FieldErrors = Partial<Record<keyof FormData, string>>;
@@ -49,6 +50,7 @@ export function ProductFormModal({ product, onClose }: Props) {
     imageUrl: product?.imageUrl ?? "",
     categoryId: product?.categoryId ?? (categories[0]?.id ?? ""),
     isAvailable: product?.isAvailable ?? true,
+    tags: product?.tags ?? [],
   });
 
   const [errors, setErrors] = useState<FieldErrors>({});
@@ -102,6 +104,7 @@ export function ProductFormModal({ product, onClose }: Props) {
       imageUrl: form.imageUrl.trim(),
       categoryId: form.categoryId,
       isAvailable: form.isAvailable,
+      tags: form.tags,
     };
 
     if (isEdit && product) {
@@ -328,6 +331,58 @@ export function ProductFormModal({ product, onClose }: Props) {
                       />
                     </button>
                   </div>
+
+                  {/* Tags / Allergen Labels */}
+                  <div className="space-y-3">
+                    <label className="block text-xs font-semibold text-zinc-400">
+                      Etiketler &amp; Alerjenler
+                    </label>
+                    {(
+                      [
+                        { type: "diet",    title: "🥗 Diyet / Yaşam Tarzı" },
+                        { type: "spice",   title: "🌶️ Baharat" },
+                        { type: "allergen",title: "⚠️ Alerjenler" },
+                      ] as const
+                    ).map(({ type, title }) => {
+                      const tagsOfType = (Object.entries(PRODUCT_TAG_META) as [ProductTag, typeof PRODUCT_TAG_META[ProductTag]][]).filter(
+                        ([, m]) => m.type === type
+                      );
+                      return (
+                        <div key={type}>
+                          <p className="text-[10px] font-bold text-zinc-600 uppercase tracking-wider mb-1.5">{title}</p>
+                          <div className="flex flex-wrap gap-1.5">
+                            {tagsOfType.map(([tag, meta]) => {
+                              const active = form.tags.includes(tag);
+                              return (
+                                <button
+                                  key={tag}
+                                  type="button"
+                                  onClick={() =>
+                                    handleChange(
+                                      "tags",
+                                      active
+                                        ? form.tags.filter((t) => t !== tag)
+                                        : [...form.tags, tag]
+                                    )
+                                  }
+                                  className={cn(
+                                    "inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-1 rounded-full border transition-all",
+                                    active
+                                      ? "text-white border-transparent shadow-sm"
+                                      : "text-zinc-500 border-white/10 bg-white/3 hover:bg-white/8"
+                                  )}
+                                  style={active ? { backgroundColor: meta.color, borderColor: meta.color } : {}}
+                                >
+                                  <span>{meta.emoji}</span>
+                                  {meta.label}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
 
                 {/* ── Right: Live Preview ── */}
@@ -383,6 +438,27 @@ export function ProductFormModal({ product, onClose }: Props) {
                         <p className="text-[11px] text-zinc-500 mt-0.5 line-clamp-2 leading-relaxed">
                           {form.description}
                         </p>
+                      )}
+                      {/* Tag preview */}
+                      {form.tags.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mt-1.5">
+                          {form.tags.map((tag) => {
+                            const meta = PRODUCT_TAG_META[tag];
+                            return (
+                              <span
+                                key={tag}
+                                className="inline-flex items-center gap-0.5 text-[9px] font-semibold px-1.5 py-0.5 rounded-full border"
+                                style={{
+                                  color: meta.color,
+                                  backgroundColor: `${meta.color}18`,
+                                  borderColor: `${meta.color}35`,
+                                }}
+                              >
+                                {meta.emoji} {meta.label}
+                              </span>
+                            );
+                          })}
+                        </div>
                       )}
                       <p className="text-base font-bold text-brand-400 mt-2">
                         {form.price && Number(form.price) > 0

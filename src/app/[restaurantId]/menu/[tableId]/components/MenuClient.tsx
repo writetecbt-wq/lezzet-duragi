@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { ShoppingCart, Minus, Plus, Star, Clock } from "lucide-react";
 import { useCartStore } from "@/store/cart.store";
-import { useProductStore } from "@/store/product.store";
+import { useProductStore, PRODUCT_TAG_META } from "@/store/product.store";
 import { formatPrice, MOCK_CATEGORIES } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
 
@@ -204,7 +204,7 @@ function StitchProductCard({
 
       {/* Content Container */}
       <div className="flex flex-col flex-grow justify-between py-0.5">
-        <div>
+          <div>
           <div className="flex justify-between items-start pr-1">
             <h2 className="font-bold text-zinc-900 text-[15px] leading-snug line-clamp-2">
               {product.name}
@@ -217,6 +217,29 @@ function StitchProductCard({
               </div>
             )}
           </div>
+          {/* Tag Badges */}
+          {product.tags && product.tags.length > 0 && (
+            <div className="flex flex-wrap gap-1 mt-1.5">
+              {product.tags.map((tag) => {
+                const meta = PRODUCT_TAG_META[tag];
+                if (!meta) return null;
+                return (
+                  <span
+                    key={tag}
+                    className="inline-flex items-center gap-0.5 text-[10px] font-semibold px-1.5 py-0.5 rounded-full border"
+                    style={{
+                      color: meta.color,
+                      backgroundColor: `${meta.color}18`,
+                      borderColor: `${meta.color}35`,
+                    }}
+                  >
+                    <span>{meta.emoji}</span>
+                    {meta.label}
+                  </span>
+                );
+              })}
+            </div>
+          )}
           <p className="text-[12px] text-zinc-500 mt-1 line-clamp-2 leading-relaxed">
             {product.description}
           </p>
