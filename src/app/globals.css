@@ -69,17 +69,18 @@ body {
 }
 
 /* ─── Fine Dining Utilities ──────────────────────────── */
+/* 
+   NOT: backdrop-filter: blur() iOS Safari'de position:fixed elementlerde
+   altındaki tüm touch event'lerini blokladığı için kaldırıldı (WebKit bug).
+   https://bugs.webkit.org/show_bug.cgi?id=229417
+*/
 .glass-crystal { 
-  background: rgba(255, 255, 255, 0.6); 
-  backdrop-filter: blur(16px); 
-  -webkit-backdrop-filter: blur(16px); 
-  border-bottom: 1px solid rgba(229, 225, 218, 0.4);
+  background: rgba(255, 255, 255, 0.97);
+  border-bottom: 1px solid rgba(229, 225, 218, 0.8);
 }
 
 .glass-dark-luxury { 
-  background: rgba(26, 26, 26, 0.95); 
-  backdrop-filter: blur(20px); 
-  -webkit-backdrop-filter: blur(20px); 
+  background: rgba(26, 26, 26, 0.97);
 }
 
 .luxury-shadow { 

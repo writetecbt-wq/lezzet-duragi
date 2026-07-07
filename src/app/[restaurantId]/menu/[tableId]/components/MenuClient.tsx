@@ -11,6 +11,7 @@ import {
 import { useCartStore } from "@/store/cart.store";
 import { useProductStore, PRODUCT_TAG_META } from "@/store/product.store";
 import { useTableStore } from "@/store/table.store";
+import { useOrderStore } from "@/store/order.store";
 import { formatPrice, MOCK_CATEGORIES } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
 
@@ -88,7 +89,7 @@ export function MenuClient({ tableNumber }: MenuClientProps) {
       </header>
 
       {/* ── Kategori Nav ── */}
-      <div className="sticky top-[73px] z-40 bg-background/90 backdrop-blur-md py-5 border-b border-outline/20 mt-[73px]">
+      <div className="sticky top-[73px] z-40 bg-background py-5 border-b border-outline/20 mt-[73px]">
         <div className="flex overflow-x-auto hide-scrollbar px-6 gap-8">
           {MOCK_CATEGORIES.map((cat) => {
             const isActive = activeCategory === cat.id;
@@ -117,7 +118,7 @@ export function MenuClient({ tableNumber }: MenuClientProps) {
       </div>
 
       {/* ── Ürün Listesi ── */}
-      <main className="px-6 pt-8 flex flex-col gap-16 max-w-2xl mx-auto w-full">
+      <main className="px-6 pt-8 flex flex-col gap-16 max-w-2xl mx-auto w-full relative z-10">
         <section className="animate-fade-in-up">
           {/* Kategori başlığı */}
           <div className="flex flex-col items-center mb-10 text-center">
@@ -154,31 +155,31 @@ export function MenuClient({ tableNumber }: MenuClientProps) {
         </section>
       </main>
 
-      {/* ── Floating Cart Bar — MOBILE FIXED ──
-          pointer-events-none SADECE gradient wrapper'da,
-          buton kendi içinde pointer-events-auto */}
+      {/* ── Floating Cart Bar — MOBILE FIXED ── */}
       {cartCount > 0 && (
-        <div
-          className="fixed bottom-0 left-0 w-full z-50 px-6 pb-8 pt-4 bg-gradient-to-t from-background via-background/90 to-transparent"
-          style={{ pointerEvents: "none" }}
-        >
-          <button
-            onClick={openCart}
-            style={{ pointerEvents: "auto" }}
-            className="w-full glass-dark-luxury text-white flex items-center justify-between px-8 py-5 rounded-sm luxury-shadow active:scale-[0.98] transition-transform duration-200 touch-manipulation"
-          >
-            <div className="flex items-center gap-4">
-              <div className="bg-primary/20 text-primary w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold">
-                {cartCount}
+        <div className="fixed bottom-0 left-0 w-full z-50">
+          {/* Sadece arka plan gradientine pointer-events-none uygulandı */}
+          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/90 to-transparent pointer-events-none" />
+          
+          {/* Buton kendi container'ı içinde normal çalışıyor */}
+          <div className="relative px-6 pb-8 pt-4 max-w-2xl mx-auto">
+            <button
+              onClick={openCart}
+              className="w-full glass-dark-luxury text-white flex items-center justify-between px-8 py-5 rounded-sm luxury-shadow active:scale-[0.98] transition-transform duration-200 touch-manipulation"
+            >
+              <div className="flex items-center gap-4">
+                <div className="bg-primary/20 text-primary w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold">
+                  {cartCount}
+                </div>
+                <span className="text-[11px] font-bold tracking-[0.25em] uppercase">
+                  Sipariş Detayları
+                </span>
               </div>
-              <span className="text-[11px] font-bold tracking-[0.25em] uppercase">
-                Sipariş Detayları
+              <span className="text-sm font-light text-primary tracking-tighter">
+                {formatPrice(totalPrice())}
               </span>
-            </div>
-            <span className="text-sm font-light text-primary tracking-tighter">
-              {formatPrice(totalPrice())}
-            </span>
-          </button>
+            </button>
+          </div>
         </div>
       )}
     </div>
@@ -230,7 +231,7 @@ function FineDiningProductCard({
           <img
             src={product.imageUrl}
             alt={product.name}
-            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
+            className="w-full h-full object-cover transition-transform duration-700 md:group-hover:scale-[1.03]"
             onError={() => setImgError(true)}
             loading="lazy"
             referrerPolicy="no-referrer"
@@ -328,9 +329,9 @@ function ServiceRequestButton({
   const successLabel =
     type === "WAITER" ? "Garson Geliyor" : "Hesap İletildi";
 
-  const handleRequest = async () => {
+  // async import kaldırıldı — doğrudan module-level import kullanılıyor
+  const handleRequest = () => {
     if (isRequested) return;
-    const { useOrderStore } = await import("@/store/order.store");
     useOrderStore.getState().requestService(tableNumber, type);
     setIsRequested(true);
     setTimeout(() => setIsRequested(false), 10000);

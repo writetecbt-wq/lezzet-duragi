@@ -4,6 +4,7 @@ import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { X, Minus, Plus, Trash2, ShoppingCart, ChevronRight, MessageSquare } from "lucide-react";
 import { useCartStore } from "@/store/cart.store";
+import { useOrderStore } from "@/store/order.store";
 import { formatPrice } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
 
@@ -37,9 +38,6 @@ export function CartDrawer({ tableId, restaurantId }: CartDrawerProps) {
   const handleSubmitOrder = useCallback(async () => {
     if (items.length === 0) return;
     setIsSubmitting(true);
-
-    // Get order store lazily to avoid circular dependencies if any
-    const { useOrderStore } = await import("@/store/order.store");
 
     // Map cart items to order items
     const orderItems = items.map((item) => ({

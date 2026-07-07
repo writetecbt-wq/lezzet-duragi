@@ -73,8 +73,9 @@ export const useOrderStore = create<OrderStore>()(
 
       requestService: (tableNumber, type) => {
         set((state) => {
+          const reqs = state.serviceRequests || [];
           // Check if there is an existing pending request for this table and type
-          const exists = state.serviceRequests.some(
+          const exists = reqs.some(
             (r) => r.tableNumber === tableNumber && r.type === type && r.status === "PENDING"
           );
           if (exists) return state; // Ignore duplicate spam
@@ -86,9 +87,10 @@ export const useOrderStore = create<OrderStore>()(
             status: "PENDING",
             createdAt: new Date(),
           };
-          return { serviceRequests: [newReq, ...state.serviceRequests] };
+          return { serviceRequests: [newReq, ...reqs] };
         });
       },
+
 
       resolveServiceRequest: (id) => {
         set((state) => ({
