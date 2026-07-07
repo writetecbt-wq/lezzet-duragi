@@ -75,7 +75,7 @@ export function MenuClient({ tableNumber }: MenuClientProps) {
         {/* Sepet butonu — büyük touch target */}
         <button
           onClick={openCart}
-          className="absolute right-4 p-3 text-on-surface/80 active:text-primary transition-colors touch-manipulation"
+          className="absolute right-4 p-3 text-on-surface/80 active:text-primary transition-colors"
         >
           <div className="relative">
             <ShoppingBag className="w-6 h-6" strokeWidth={1.5} />
@@ -98,7 +98,7 @@ export function MenuClient({ tableNumber }: MenuClientProps) {
                 key={cat.id}
                 onClick={() => setActiveCategory(cat.id)}
                 className={cn(
-                  "flex-shrink-0 pb-1 font-sans font-medium text-xs tracking-widest uppercase transition-all whitespace-nowrap touch-manipulation py-2",
+                  "flex-shrink-0 pb-1 font-sans font-medium text-xs tracking-widest uppercase transition-all whitespace-nowrap py-2",
                   isActive
                     ? "text-primary border-b border-primary"
                     : "text-on-surface-variant"
@@ -118,7 +118,7 @@ export function MenuClient({ tableNumber }: MenuClientProps) {
       </div>
 
       {/* ── Ürün Listesi ── */}
-      <main className="px-6 pt-8 flex flex-col gap-16 max-w-2xl mx-auto w-full relative z-10">
+      <main className="px-6 pt-8 flex flex-col gap-16 max-w-2xl mx-auto w-full">
         <section className="animate-fade-in-up">
           {/* Kategori başlığı */}
           <div className="flex flex-col items-center mb-10 text-center">
@@ -158,14 +158,12 @@ export function MenuClient({ tableNumber }: MenuClientProps) {
       {/* ── Floating Cart Bar — MOBILE FIXED ── */}
       {cartCount > 0 && (
         <div className="fixed bottom-0 left-0 w-full z-50">
-          {/* Sadece arka plan gradientine pointer-events-none uygulandı */}
           <div className="absolute inset-0 bg-gradient-to-t from-background via-background/90 to-transparent pointer-events-none" />
           
-          {/* Buton kendi container'ı içinde normal çalışıyor */}
           <div className="relative px-6 pb-8 pt-4 max-w-2xl mx-auto">
             <button
               onClick={openCart}
-              className="w-full glass-dark-luxury text-white flex items-center justify-between px-8 py-5 rounded-sm luxury-shadow active:scale-[0.98] transition-transform duration-200 touch-manipulation"
+              className="w-full glass-dark-luxury text-white flex items-center justify-between px-8 py-5 rounded-sm luxury-shadow active:scale-[0.98] transition-transform duration-200"
             >
               <div className="flex items-center gap-4">
                 <div className="bg-primary/20 text-primary w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold">
@@ -211,7 +209,7 @@ function FineDiningProductCard({
       )}
     >
       {/* Resim */}
-      <div className="relative aspect-[16/9] overflow-hidden rounded-sm bg-outline/20 img-zoom-hover">
+      <div className="relative aspect-[16/9] overflow-hidden rounded-sm bg-outline/20">
         {inCart && (
           <div className="absolute top-4 left-4 z-10">
             <span className="bg-primary/90 text-white font-sans text-[9px] tracking-[0.2em] uppercase px-3 py-1.5 backdrop-blur-sm shadow-sm">
@@ -231,7 +229,7 @@ function FineDiningProductCard({
           <img
             src={product.imageUrl}
             alt={product.name}
-            className="w-full h-full object-cover transition-transform duration-700 md:group-hover:scale-[1.03]"
+            className="w-full h-full object-cover transition-transform duration-700 md:hover:scale-[1.03]"
             onError={() => setImgError(true)}
             loading="lazy"
             referrerPolicy="no-referrer"
@@ -285,7 +283,7 @@ function FineDiningProductCard({
                 <div className="flex items-center border border-outline rounded-full">
                   <button
                     onClick={onDecrement}
-                    className="w-11 h-11 flex items-center justify-center text-on-surface-variant active:text-on-surface touch-manipulation"
+                    className="w-11 h-11 flex items-center justify-center text-on-surface-variant active:text-on-surface"
                   >
                     <Minus className="w-3.5 h-3.5" />
                   </button>
@@ -294,7 +292,7 @@ function FineDiningProductCard({
                   </span>
                   <button
                     onClick={onIncrement}
-                    className="w-11 h-11 flex items-center justify-center text-primary active:text-primary/70 touch-manipulation"
+                    className="w-11 h-11 flex items-center justify-center text-primary active:text-primary/70"
                   >
                     <Plus className="w-3.5 h-3.5" />
                   </button>
@@ -303,7 +301,7 @@ function FineDiningProductCard({
                 /* Ekle butonu — min 44px touch target */
                 <button
                   onClick={onAdd}
-                  className="w-11 h-11 rounded-full border border-outline flex items-center justify-center text-primary active:bg-primary active:text-white transition-colors duration-200 touch-manipulation"
+                  className="w-11 h-11 rounded-full border border-outline flex items-center justify-center text-primary active:bg-primary active:text-white transition-colors duration-200"
                 >
                   <Plus className="w-4 h-4" />
                 </button>
@@ -316,7 +314,7 @@ function FineDiningProductCard({
   );
 }
 
-// ─── Service Request Button ───────────────────────────────────────────────────
+// ─── Service Request Button ───────────────────────────────────────────────
 function ServiceRequestButton({
   tableNumber,
   type,
@@ -338,12 +336,11 @@ function ServiceRequestButton({
   };
 
   return (
-    /* min-height 48px touch target — active:scale ile fiziksel hissi */
     <button
       onClick={handleRequest}
       disabled={isRequested}
       className={cn(
-        "flex-1 min-h-[48px] px-4 font-sans text-[11px] tracking-[0.15em] uppercase flex items-center justify-center gap-2 transition-all duration-300 border-b touch-manipulation active:scale-95",
+        "flex-1 min-h-[48px] px-4 font-sans text-[11px] tracking-[0.15em] uppercase flex items-center justify-center gap-2 transition-all duration-300 border-b active:scale-95",
         isRequested
           ? "border-primary text-primary"
           : "border-outline text-on-surface-variant active:text-on-surface active:border-on-surface"
