@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Package, ExternalLink, Map, BarChart3 } from "lucide-react";
+import { LayoutDashboard, Package, ExternalLink, Map, BarChart3, QrCode } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
@@ -20,6 +20,11 @@ const NAV_ITEMS = [
     href: "/admin/reports",
     label: "Raporlar",
     icon: BarChart3,
+  },
+  {
+    href: "/admin/qrcodes",
+    label: "QR Kodlar",
+    icon: QrCode,
   },
   {
     href: "/admin/products",
