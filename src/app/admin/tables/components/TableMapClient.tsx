@@ -100,7 +100,11 @@ export function TableMapClient() {
           <div className="flex items-center gap-3">
             {/* Decrease */}
             <button
-              onClick={removeTable}
+              onClick={() => {
+                if (window.confirm("En son masayı silmek istediğinize emin misiniz? Yanlışlıkla silinmesin.")) {
+                  removeTable();
+                }
+              }}
               disabled={totalTables <= MIN_TABLES}
               className={cn(
                 "w-11 h-11 rounded-xl border font-bold text-xl flex items-center justify-center transition-all active:scale-95",
@@ -117,14 +121,15 @@ export function TableMapClient() {
               <span className="text-4xl font-black text-white leading-none tabular-nums">
                 {totalTables}
               </span>
-              <span className="text-[10px] text-zinc-600 mt-1">
-                maks {MAX_TABLES}
-              </span>
             </div>
 
             {/* Increase */}
             <button
-              onClick={addTable}
+              onClick={() => {
+                if (window.confirm("Yeni bir masa eklemek istediğinize emin misiniz?")) {
+                  addTable();
+                }
+              }}
               disabled={totalTables >= MAX_TABLES}
               className={cn(
                 "w-11 h-11 rounded-xl border font-bold text-xl flex items-center justify-center transition-all active:scale-95",
@@ -142,7 +147,11 @@ export function TableMapClient() {
             {[5, 10, 15, 20].map((n) => (
               <button
                 key={n}
-                onClick={() => useTableStore.getState().setTotalTables(n)}
+                onClick={() => {
+                  if (window.confirm(`Masa sayısını topluca ${n} olarak ayarlamak istediğinize emin misiniz?`)) {
+                    useTableStore.getState().setTotalTables(n);
+                  }
+                }}
                 className={cn(
                   "flex-1 py-1 text-[11px] font-bold rounded-lg border transition-all",
                   totalTables === n

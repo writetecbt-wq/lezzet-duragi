@@ -90,8 +90,13 @@ export const useProductStore = create<ProductStore>((set, get) => ({
 
       set({ products, categories, isLoading: false });
     } catch (error) {
-      console.error("Error fetching data:", error);
-      set({ isLoading: false });
+      console.error("Error fetching data, falling back to mock data:", error);
+      // Fallback to mock data if Firebase is unreachable
+      set({ 
+        products: MOCK_PRODUCTS as unknown as Product[], 
+        categories: MOCK_CATEGORIES as unknown as Category[], 
+        isLoading: false 
+      });
     }
   },
 

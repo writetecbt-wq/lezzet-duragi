@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import {
   Bell,
   ChefHat,
@@ -10,17 +10,20 @@ import {
   Plus,
   ChevronDown,
   ChevronUp,
+  Clock,
 } from "lucide-react";
 import {
   MockOrder,
   MockOrderItem,
   formatPrice,
   timeAgo,
+  formatTime,
+  getOrderDuration,
 } from "@/lib/mock-data";
 import { useOrderStore } from "@/store/order.store";
 import { cn } from "@/lib/utils";
 
-type OrderStatus = "PENDING" | "PREPARING" | "COMPLETED" | "CANCELLED";
+type OrderStatus = "PENDING" | "PREPARING" | "COMPLETED" | "PAID" | "CANCELLED";
 
 const STATUS_CONFIG: Record<
   OrderStatus,
@@ -61,6 +64,16 @@ const STATUS_CONFIG: Record<
     bgDark: "bg-green-500/10",
     borderColor: "border-green-500/25",
     headerGlow: "shadow-green-500/20",
+    icon: CheckCircle2,
+    next: "PAID",
+    nextLabel: "Ödendi İşaretle",
+  },
+  PAID: {
+    label: "Ödendi",
+    color: "text-brand-400",
+    bgDark: "bg-brand-500/10",
+    borderColor: "border-brand-500/25",
+    headerGlow: "shadow-brand-500/20",
     icon: CheckCircle2,
   },
   CANCELLED: {
@@ -121,44 +134,44 @@ export function AdminClient() {
   const [prevOrderCount, setPrevOrderCount] = useState(orders.length);
 
   // Detect newly added orders from other tabs or store directly
-  const [seenOrderIds, setSeenOrderIds] = useState<Set<string>>(new Set(orders.map(o => o.id)));
+  const seenOrderIdsRef = useRef<Set<string>>(new Set());
+  const initializedOrdersRef = useRef(false);
 
   useEffect(() => {
     // Initialize seenIds on first load
-    if (seenOrderIds.size === 0 && orders.length > 0 && !notification) {
-      setSeenOrderIds(new Set(orders.map(o => o.id)));
+    if (!initializedOrdersRef.current && orders.length > 0) {
+      orders.forEach(o => seenOrderIdsRef.current.add(o.id));
+      initializedOrdersRef.current = true;
       return;
     }
 
     // Find any order we haven't seen yet
-    const unseenOrder = orders.find(o => !seenOrderIds.has(o.id));
+    const unseenOrder = orders.find(o => !seenOrderIdsRef.current.has(o.id));
 
     if (unseenOrder) {
+      seenOrderIdsRef.current.add(unseenOrder.id);
       setNewOrderIds((prev) => new Set([...prev, unseenOrder.id]));
       setNotification({ msg: `Masa ${unseenOrder.tableNumber} yeni sipariş verdi!`, key: Date.now() });
       
-      const timeoutId = setTimeout(() => {
+      // Auto-remove new highlight
+      setTimeout(() => {
         setNewOrderIds((prev) => { const n = new Set(prev); n.delete(unseenOrder.id); return n; });
       }, 6000);
       
-      const notifId = setTimeout(() => setNotification(null), 4500);
-
-      setSeenOrderIds(prev => {
-        const next = new Set(prev);
-        next.add(unseenOrder.id);
-        return next;
-      });
-      
-      return () => { clearTimeout(timeoutId); clearTimeout(notifId); };
+      return;
     }
 
     // Keep seenIds up to date
-    setSeenOrderIds(prev => {
-      const next = new Set(prev);
-      orders.forEach(o => next.add(o.id));
-      return next;
-    });
-  }, [orders, seenOrderIds, notification]);
+    orders.forEach(o => seenOrderIdsRef.current.add(o.id));
+  }, [orders]);
+
+  // Handle notification auto-hide separately so it doesn't get cancelled when orders update
+  useEffect(() => {
+    if (notification) {
+      const id = setTimeout(() => setNotification(null), 4500);
+      return () => clearTimeout(id);
+    }
+  }, [notification]);
 
   const addSimulatedOrder = useCallback(() => {
     const mock = generateMockOrder();
@@ -286,7 +299,7 @@ export function AdminClient() {
       ) : (
         <div className="flex-1 overflow-y-auto p-5">
           <div className="space-y-2 max-w-5xl mx-auto">
-            {orders.filter((o) => o.status !== "CANCELLED").map((order) => (
+            {orders.filter((o) => o.status !== "CANCELLED" && o.status !== "PAID").map((order) => (
               <ListRow
                 key={order.id}
                 order={order}
@@ -376,7 +389,15 @@ function KanbanCard({
               <span className="text-[9px] bg-amber-500 text-white px-1.5 py-0.5 rounded-full font-bold leading-none">YENİ</span>
             )}
           </div>
-          <p className="text-[11px] text-zinc-500">{timeAgo(order.createdAt)} · {order.items.length} ürün</p>
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-zinc-500">
+            <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {formatTime(order.createdAt)}</span>
+            <span>·</span>
+            <span className={cn(order.status === "COMPLETED" ? "text-green-500/80" : "text-amber-500/80")}>
+              {getOrderDuration(order.createdAt, order.completedAt)}
+            </span>
+            <span>·</span>
+            <span>{order.items.length} ürün</span>
+          </div>
         </div>
         <div className="text-right flex-shrink-0">
           <p className="text-sm font-bold text-brand-400">{formatPrice(order.totalAmount)}</p>
@@ -414,12 +435,15 @@ function KanbanCard({
               <button
                 id={`advance-${order.id}`}
                 onClick={onAdvance}
-                className="flex-1 py-2 rounded-xl bg-brand-500 hover:bg-brand-600 text-white text-xs font-bold transition-all btn-press"
+                className={cn(
+                  "flex-1 py-2 rounded-xl text-white text-xs font-bold transition-all btn-press",
+                  order.status === "COMPLETED" ? "bg-green-500 hover:bg-green-600 shadow-lg shadow-green-900/20" : "bg-brand-500 hover:bg-brand-600"
+                )}
               >
                 {config.nextLabel}
               </button>
             )}
-            {order.status !== "COMPLETED" && (
+            {order.status !== "COMPLETED" && order.status !== "PAID" && (
               <button
                 id={`cancel-${order.id}`}
                 onClick={onCancel}
@@ -475,7 +499,12 @@ function ListRow({
         {cfg.label}
       </div>
 
-      <p className="text-xs text-zinc-600 flex-shrink-0 hidden md:block w-16 text-right">{timeAgo(order.createdAt)}</p>
+      <div className="text-xs flex flex-col items-end flex-shrink-0 hidden md:flex w-24 text-right">
+        <span className="text-zinc-500 flex items-center gap-1"><Clock className="w-3 h-3" /> {formatTime(order.createdAt)}</span>
+        <span className={cn("font-medium", order.status === "COMPLETED" ? "text-green-500/80" : "text-amber-500/80")}>
+          {getOrderDuration(order.createdAt, order.completedAt)}
+        </span>
+      </div>
 
       <p className="text-sm font-bold text-brand-400 flex-shrink-0 w-20 text-right">{formatPrice(order.totalAmount)}</p>
 
@@ -484,12 +513,17 @@ function ListRow({
           <button
             id={`list-adv-${order.id}`}
             onClick={onAdvance}
-            className="px-3 py-1.5 rounded-lg bg-brand-500/15 border border-brand-500/30 text-brand-400 hover:bg-brand-500/25 text-xs font-semibold transition-all whitespace-nowrap"
+            className={cn(
+              "px-3 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap",
+              order.status === "COMPLETED"
+                ? "bg-green-500/15 border border-green-500/30 text-green-400 hover:bg-green-500/25"
+                : "bg-brand-500/15 border border-brand-500/30 text-brand-400 hover:bg-brand-500/25"
+            )}
           >
             {cfg.nextLabel}
           </button>
         )}
-        {order.status !== "COMPLETED" && (
+        {order.status !== "COMPLETED" && order.status !== "PAID" && (
           <button
             id={`list-cancel-${order.id}`}
             onClick={onCancel}

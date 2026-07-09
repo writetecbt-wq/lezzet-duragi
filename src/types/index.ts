@@ -29,7 +29,7 @@ export type OrderWithItems = {
   id: string;
   tableId: string;
   totalAmount: Prisma.Decimal;
-  status: OrderStatus;
+  status: OrderStatus | "PAID";
   notes: string | null;
   createdAt: Date;
   updatedAt: Date;

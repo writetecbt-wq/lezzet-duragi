@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Package, ExternalLink, Map, BarChart3, QrCode } from "lucide-react";
+import { LayoutDashboard, Package, ExternalLink, Map, BarChart3, QrCode, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
@@ -33,7 +33,7 @@ const NAV_ITEMS = [
   },
 ];
 
-export function AdminNav() {
+export function AdminNav({ onLogout }: { onLogout?: () => void }) {
   const pathname = usePathname();
 
   return (
@@ -86,6 +86,15 @@ export function AdminNav() {
           <ExternalLink className="w-3.5 h-3.5" />
           <span className="hidden lg:inline">Müşteri Görünümü</span>
         </Link>
+        {onLogout && (
+          <button
+            onClick={onLogout}
+            className="flex items-center gap-1.5 text-xs text-zinc-500 hover:text-red-400 transition-colors py-1.5 px-2 rounded-lg hover:bg-red-500/10"
+          >
+            <LogOut className="w-3.5 h-3.5" />
+            <span className="hidden lg:inline">Çıkış</span>
+          </button>
+        )}
       </div>
     </header>
 
@@ -95,7 +104,7 @@ export function AdminNav() {
   );
 }
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useOrderStore } from "@/store/order.store";
 import { useProductStore } from "@/store/product.store";
 import { Bell, CreditCard, HandPlatter, X } from "lucide-react";
@@ -103,7 +112,8 @@ import { Bell, CreditCard, HandPlatter, X } from "lucide-react";
 function ServiceNotificationListener() {
   const { serviceRequests, resolveServiceRequest, listenToOrders, listenToServiceRequests } = useOrderStore();
   const { fetchProductsAndCategories } = useProductStore();
-  const [seenIds, setSeenIds] = useState<Set<string>>(new Set(serviceRequests.map(r => r.id)));
+  const seenIdsRef = useRef<Set<string>>(new Set());
+  const initializedRef = useRef(false);
   const [activeToast, setActiveToast] = useState<{
     id: string;
     tableNumber: number;
@@ -123,39 +133,39 @@ function ServiceNotificationListener() {
   }, [listenToOrders, listenToServiceRequests, fetchProductsAndCategories]);
 
   useEffect(() => {
-    // Initialize seenIds on first load if it was empty but we have requests
-    if (seenIds.size === 0 && serviceRequests.length > 0 && !activeToast) {
-      setSeenIds(new Set(serviceRequests.map(r => r.id)));
+    // Initialize seenIds on first load
+    if (!initializedRef.current && serviceRequests.length > 0) {
+      serviceRequests.forEach(r => seenIdsRef.current.add(r.id));
+      initializedRef.current = true;
       return;
     }
 
     // Find any PENDING request that we haven't seen yet
-    const unseenPending = serviceRequests.find(r => r.status === "PENDING" && !seenIds.has(r.id));
+    const unseenPending = serviceRequests.find(r => r.status === "PENDING" && !seenIdsRef.current.has(r.id));
     
     if (unseenPending) {
+      seenIdsRef.current.add(unseenPending.id);
+
       setActiveToast({
         id: unseenPending.id,
         tableNumber: unseenPending.tableNumber,
         type: unseenPending.type,
       });
 
-      setSeenIds(prev => {
-        const next = new Set(prev);
-        next.add(unseenPending.id);
-        return next;
-      });
-
-      const timer = setTimeout(() => setActiveToast(null), 8000);
-      return () => clearTimeout(timer);
+      return;
     }
     
     // Also add all current IDs to seen to prevent notifying for resolved/old ones
-    setSeenIds(prev => {
-      const next = new Set(prev);
-      serviceRequests.forEach(r => next.add(r.id));
-      return next;
-    });
-  }, [serviceRequests, seenIds, activeToast]);
+    serviceRequests.forEach(r => seenIdsRef.current.add(r.id));
+  }, [serviceRequests]);
+
+  // Handle notification auto-hide separately so it doesn't get cancelled when requests update
+  useEffect(() => {
+    if (activeToast) {
+      const id = setTimeout(() => setActiveToast(null), 8000);
+      return () => clearTimeout(id);
+    }
+  }, [activeToast]);
 
   if (!activeToast) return null;
 

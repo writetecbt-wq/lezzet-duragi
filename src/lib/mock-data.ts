@@ -343,3 +343,22 @@ export function timeAgo(date: Date): string {
   const hours = Math.floor(minutes / 60);
   return `${hours} sa önce`;
 }
+
+export function formatTime(date: Date): string {
+  return date.toLocaleTimeString("tr-TR", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+export function getOrderDuration(createdAt: Date, completedAt?: Date): string {
+  const end = completedAt || new Date();
+  const diffMs = end.getTime() - createdAt.getTime();
+  const minutes = Math.floor(diffMs / 60000);
+  if (minutes < 1) return "< 1 dk";
+  if (minutes < 60) return `${minutes} dk`;
+  const hours = Math.floor(minutes / 60);
+  const remainingMin = minutes % 60;
+  return `${hours} sa ${remainingMin} dk`;
+}
+

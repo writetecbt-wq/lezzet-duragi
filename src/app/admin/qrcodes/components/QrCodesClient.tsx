@@ -54,7 +54,11 @@ export function QrCodesClient() {
               Masa Sayısı
             </span>
             <button
-              onClick={removeTable}
+              onClick={() => {
+                if (window.confirm("En son masayı silmek istediğinize emin misiniz? Yanlışlıkla silinmesin.")) {
+                  removeTable();
+                }
+              }}
               disabled={totalTables <= MIN_TABLES}
               className={cn(
                 "w-7 h-7 rounded-lg flex items-center justify-center border transition-all",
@@ -69,7 +73,11 @@ export function QrCodesClient() {
               {totalTables}
             </span>
             <button
-              onClick={addTable}
+              onClick={() => {
+                if (window.confirm("Yeni bir masa eklemek istediğinize emin misiniz?")) {
+                  addTable();
+                }
+              }}
               disabled={totalTables >= MAX_TABLES}
               className={cn(
                 "w-7 h-7 rounded-lg flex items-center justify-center border transition-all",

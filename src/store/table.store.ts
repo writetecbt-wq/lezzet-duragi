@@ -1,7 +1,7 @@
 "use client";
 
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { persist, createJSONStorage } from "zustand/middleware";
 
 type TableStore = {
   totalTables: number;
@@ -11,7 +11,19 @@ type TableStore = {
 };
 
 export const MIN_TABLES = 1;
-export const MAX_TABLES = 30;
+export const MAX_TABLES = 100;
+
+const safeStorage = {
+  getItem: (name: string) => {
+    try { return localStorage.getItem(name); } catch { return null; }
+  },
+  setItem: (name: string, value: string) => {
+    try { localStorage.setItem(name, value); } catch {}
+  },
+  removeItem: (name: string) => {
+    try { localStorage.removeItem(name); } catch {}
+  },
+};
 
 export const useTableStore = create<TableStore>()(
   persist(
@@ -31,6 +43,9 @@ export const useTableStore = create<TableStore>()(
           totalTables: Math.max(MIN_TABLES, s.totalTables - 1),
         })),
     }),
-    { name: "restaurant-tables" }
+    { 
+      name: "restaurant-tables",
+      storage: createJSONStorage(() => safeStorage),
+    }
   )
 );

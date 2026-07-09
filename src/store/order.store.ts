@@ -1,10 +1,10 @@
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { persist, createJSONStorage } from "zustand/middleware";
 import { MockOrderItem } from "@/lib/mock-data";
 import { db } from "@/lib/firebase/config";
 import { collection, doc, setDoc, updateDoc, onSnapshot, query, orderBy, serverTimestamp, Timestamp } from "firebase/firestore";
 
-export type OrderStatus = "PENDING" | "PREPARING" | "COMPLETED" | "CANCELLED";
+export type OrderStatus = "PENDING" | "PREPARING" | "COMPLETED" | "PAID" | "CANCELLED";
 export type ServiceRequestType = "WAITER" | "BILL";
 
 export type FirestoreOrder = {
@@ -13,6 +13,7 @@ export type FirestoreOrder = {
   status: OrderStatus;
   totalAmount: number;
   createdAt: Date;
+  completedAt?: Date;
   items: MockOrderItem[];
   notes?: string;
   restaurantId?: string;
@@ -27,6 +28,18 @@ export type ServiceRequest = {
   restaurantId?: string;
 };
 
+const safeStorage = {
+  getItem: (name: string) => {
+    try { return localStorage.getItem(name); } catch { return null; }
+  },
+  setItem: (name: string, value: string) => {
+    try { localStorage.setItem(name, value); } catch {}
+  },
+  removeItem: (name: string) => {
+    try { localStorage.removeItem(name); } catch {}
+  },
+};
+
 type OrderStore = {
   orders: FirestoreOrder[];
   serviceRequests: ServiceRequest[];
@@ -39,6 +52,11 @@ type OrderStore = {
   ) => Promise<void>;
   updateOrderStatus: (orderId: string, status: OrderStatus) => Promise<void>;
   cancelOrder: (orderId: string) => Promise<void>;
+
+  // Garson: Sipariş düzenleme
+  updateOrderItems: (orderId: string, items: MockOrderItem[], newTotal: number) => Promise<void>;
+  // Garson + Admin: Masa değiştirme
+  changeOrderTable: (orderId: string, newTableNumber: number) => Promise<void>;
 
   requestService: (tableNumber: number, type: ServiceRequestType) => Promise<void>;
   resolveServiceRequest: (id: string) => Promise<void>;
@@ -80,10 +98,16 @@ export const useOrderStore = create<OrderStore>()(
 
       updateOrderStatus: async (orderId, status) => {
         try {
-          await updateDoc(doc(db, "orders", orderId), { status });
+          const updateData: Record<string, unknown> = { status };
+          if (status === "COMPLETED") {
+            updateData.completedAt = serverTimestamp();
+          }
+          await updateDoc(doc(db, "orders", orderId), updateData);
           set((state) => ({
             orders: state.orders.map((o) =>
-              o.id === orderId ? { ...o, status } : o
+              o.id === orderId
+                ? { ...o, status, ...(status === "COMPLETED" ? { completedAt: new Date() } : {}) }
+                : o
             ),
           }));
         } catch (error) {
@@ -101,6 +125,32 @@ export const useOrderStore = create<OrderStore>()(
           }));
         } catch (error) {
           console.error("Error cancelling order:", error);
+        }
+      },
+
+      updateOrderItems: async (orderId, items, newTotal) => {
+        try {
+          await updateDoc(doc(db, "orders", orderId), { items, totalAmount: newTotal });
+          set((state) => ({
+            orders: state.orders.map((o) =>
+              o.id === orderId ? { ...o, items, totalAmount: newTotal } : o
+            ),
+          }));
+        } catch (error) {
+          console.error("Error updating order items:", error);
+        }
+      },
+
+      changeOrderTable: async (orderId, newTableNumber) => {
+        try {
+          await updateDoc(doc(db, "orders", orderId), { tableNumber: newTableNumber });
+          set((state) => ({
+            orders: state.orders.map((o) =>
+              o.id === orderId ? { ...o, tableNumber: newTableNumber } : o
+            ),
+          }));
+        } catch (error) {
+          console.error("Error changing order table:", error);
         }
       },
 
@@ -153,6 +203,7 @@ export const useOrderStore = create<OrderStore>()(
               ...data,
               id: doc.id,
               createdAt: data.createdAt ? (data.createdAt as Timestamp).toDate() : new Date(),
+              completedAt: data.completedAt ? (data.completedAt as Timestamp).toDate() : undefined,
             } as FirestoreOrder;
           });
           set({ orders });
@@ -178,11 +229,13 @@ export const useOrderStore = create<OrderStore>()(
     }),
     {
       name: "restaurant-orders",
+      storage: createJSONStorage(() => safeStorage),
       onRehydrateStorage: () => (state) => {
         if (state) {
           state.orders = state.orders.map((o) => ({
             ...o,
             createdAt: new Date(o.createdAt),
+            completedAt: o.completedAt ? new Date(o.completedAt) : undefined,
           }));
           state.serviceRequests = (state.serviceRequests || []).map((r) => ({
             ...r,

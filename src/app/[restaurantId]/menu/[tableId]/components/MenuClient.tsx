@@ -127,9 +127,9 @@ export function MenuClient({ tableNumber }: MenuClientProps) {
       </div>
 
       {/* ── Main Content ── */}
-      <main className="px-6 pt-10 flex flex-col gap-16 max-w-7xl mx-auto w-full">
+      <main className="px-6 pt-6 flex flex-col gap-10 max-w-7xl mx-auto w-full">
         <section className="animate-fade-in-up" key={activeCategory} style={{ animationDelay: "0.1s" }}>
-          <div className="flex flex-col items-center mb-10 text-center">
+          <div className="flex flex-col items-center mb-6 text-center">
             <span className="font-serif italic text-primary text-sm mb-2">
               {activeCategory === "cat_yiyecek_001" ? "Münhasır Deneyim" : "Özel Seçimler"}
             </span>
@@ -141,24 +141,8 @@ export function MenuClient({ tableNumber }: MenuClientProps) {
           
           {activeProducts.length === 0 ? (
             <p className="text-center text-on-surface-variant py-10 font-light">Bu kategoride ürün bulunamadı.</p>
-          ) : isGridStyle ? (
-            <div className="grid grid-cols-2 gap-x-6 gap-y-12">
-              {activeProducts.map((product) => {
-                const qty = getItemQuantity(product.id);
-                return (
-                  <GridProductCard
-                    key={product.id}
-                    product={product}
-                    quantity={qty}
-                    onAdd={() => handleAddOrIncrement(product)}
-                    onIncrement={() => handleAddOrIncrement(product)}
-                    onDecrement={() => updateQuantity(product.id, qty - 1)}
-                  />
-                );
-              })}
-            </div>
           ) : (
-            <div className="flex flex-col gap-12">
+            <div className="flex flex-col gap-6">
               {activeProducts.map((product) => {
                 const qty = getItemQuantity(product.id);
                 return (
@@ -218,20 +202,19 @@ function HorizontalProductCard({
   const inCart = quantity > 0;
 
   return (
-    <article className={cn("group flex flex-col gap-4 relative", !product.isAvailable && "opacity-50 grayscale pointer-events-none")}>
-      <div className="relative aspect-[16/9] overflow-hidden rounded-sm bg-outline/20 img-zoom-hover">
+    <article className={cn("group flex gap-4 relative", !product.isAvailable && "opacity-50 grayscale pointer-events-none")}>
+      {/* Compact Image */}
+      <div className="relative w-24 h-24 md:w-28 md:h-28 flex-shrink-0 overflow-hidden rounded-xl bg-outline/20 img-zoom-hover">
         {inCart && (
-          <div className="absolute top-4 left-4 z-10">
-            <span className="bg-primary/90 text-white font-sans text-[9px] tracking-[0.2em] uppercase px-3 py-1.5 backdrop-blur-sm shadow-sm">
-              Seçildi
+          <div className="absolute top-1.5 left-1.5 z-10">
+            <span className="bg-primary/90 text-white font-sans text-[8px] tracking-[0.15em] uppercase px-2 py-1 backdrop-blur-sm shadow-sm rounded-sm">
+              ×{quantity}
             </span>
           </div>
         )}
         {!product.isAvailable && (
-          <div className="absolute top-4 right-4 z-10">
-            <span className="bg-accent-dark/90 text-white font-sans text-[9px] tracking-[0.2em] uppercase px-3 py-1.5 backdrop-blur-sm">
-              Tükendi
-            </span>
+          <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-10">
+            <span className="text-white font-sans text-[8px] tracking-[0.2em] uppercase">Tükendi</span>
           </div>
         )}
         {product.imageUrl && !imgError ? (
@@ -239,27 +222,28 @@ function HorizontalProductCard({
           <img
             src={product.imageUrl}
             alt={product.name}
-            className="w-full h-full object-cover grayscale-[20%] group-hover:grayscale-0 transition-transform duration-700"
+            className="w-full h-full object-cover transition-transform duration-700"
             onError={() => setImgError(true)}
             loading="lazy"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-4xl bg-outline/10">🍽️</div>
+          <div className="w-full h-full flex items-center justify-center text-2xl bg-outline/10">🍽️</div>
         )}
       </div>
 
-      <div className="flex justify-between items-baseline gap-4">
-        <div className="flex flex-col gap-1 max-w-[75%] md:max-w-[80%]">
-          <h3 className="font-serif text-xl text-on-surface tracking-tight leading-snug">
+      {/* Text & Actions */}
+      <div className="flex-1 flex flex-col justify-between min-w-0 py-0.5">
+        <div>
+          <h3 className="font-serif text-lg text-on-surface tracking-tight leading-snug">
             {product.name}
           </h3>
-          <p className="font-sans text-[13px] leading-relaxed text-on-surface-variant font-light">
+          <p className="font-sans text-[12px] leading-relaxed text-on-surface-variant font-light mt-0.5 line-clamp-2">
             {product.description}
           </p>
         </div>
 
-        <div className="flex flex-col items-end gap-3 flex-shrink-0">
-          <span className="font-sans text-sm font-medium tracking-tighter text-on-surface">
+        <div className="flex items-center justify-between mt-2">
+          <span className="font-sans text-sm font-semibold tracking-tighter text-on-surface">
             {formatPrice(product.price)}
           </span>
           {product.isAvailable && (
@@ -274,7 +258,7 @@ function HorizontalProductCard({
                 </button>
               </div>
             ) : (
-              <button onClick={onAdd} className="mt-1 w-8 h-8 rounded-full border border-outline flex items-center justify-center text-primary hover:bg-primary hover:text-white transition-all duration-500">
+              <button onClick={onAdd} className="w-8 h-8 rounded-full border border-outline flex items-center justify-center text-primary hover:bg-primary hover:text-white transition-all duration-500">
                 <Plus className="w-4 h-4" />
               </button>
             )
