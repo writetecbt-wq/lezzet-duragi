@@ -37,6 +37,7 @@ export function AdminNav() {
   const pathname = usePathname();
 
   return (
+    <>
     <header className="border-b border-white/8 px-6 py-0 flex items-center justify-between bg-[#0f0f12]/80 backdrop-blur-xl sticky top-0 z-50">
       {/* Brand */}
       <div className="flex items-center gap-3 py-3 pr-6 border-r border-white/8 mr-4">
@@ -86,56 +87,82 @@ export function AdminNav() {
           <span className="hidden lg:inline">Müşteri Görünümü</span>
         </Link>
       </div>
-
-      {/* Global Notifications */}
-      <ServiceNotificationListener />
     </header>
+
+    {/* Global Notifications (Outside header to prevent backdrop-filter fixed positioning bug) */}
+    <ServiceNotificationListener />
+    </>
   );
 }
 
 import { useEffect, useState } from "react";
 import { useOrderStore } from "@/store/order.store";
+import { useProductStore } from "@/store/product.store";
 import { Bell, CreditCard, HandPlatter, X } from "lucide-react";
 
 function ServiceNotificationListener() {
-  const { serviceRequests, resolveServiceRequest } = useOrderStore();
-  const [prevCount, setPrevCount] = useState(serviceRequests.length);
+  const { serviceRequests, resolveServiceRequest, listenToOrders, listenToServiceRequests } = useOrderStore();
+  const { fetchProductsAndCategories } = useProductStore();
+  const [seenIds, setSeenIds] = useState<Set<string>>(new Set(serviceRequests.map(r => r.id)));
   const [activeToast, setActiveToast] = useState<{
     id: string;
     tableNumber: number;
     type: "WAITER" | "BILL";
   } | null>(null);
 
+  // Start real-time Firestore listeners and fetch initial product data on mount
   useEffect(() => {
-    if (serviceRequests.length > prevCount) {
-      // Find the new pending request
-      const latest = serviceRequests[0];
-      if (latest && latest.status === "PENDING") {
-        setActiveToast({
-          id: latest.id,
-          tableNumber: latest.tableNumber,
-          type: latest.type,
-        });
+    fetchProductsAndCategories();
+    const unsubOrders = listenToOrders();
+    const unsubRequests = listenToServiceRequests();
+    
+    return () => {
+      unsubOrders();
+      unsubRequests();
+    };
+  }, [listenToOrders, listenToServiceRequests, fetchProductsAndCategories]);
 
-        // Auto-dismiss toast after 8 seconds (does NOT resolve the request, just hides toast)
-        const timer = setTimeout(() => {
-          setActiveToast(null);
-        }, 8000);
-
-        setPrevCount(serviceRequests.length);
-        return () => clearTimeout(timer);
-      }
-    } else {
-      setPrevCount(serviceRequests.length);
+  useEffect(() => {
+    // Initialize seenIds on first load if it was empty but we have requests
+    if (seenIds.size === 0 && serviceRequests.length > 0 && !activeToast) {
+      setSeenIds(new Set(serviceRequests.map(r => r.id)));
+      return;
     }
-  }, [serviceRequests, prevCount]);
+
+    // Find any PENDING request that we haven't seen yet
+    const unseenPending = serviceRequests.find(r => r.status === "PENDING" && !seenIds.has(r.id));
+    
+    if (unseenPending) {
+      setActiveToast({
+        id: unseenPending.id,
+        tableNumber: unseenPending.tableNumber,
+        type: unseenPending.type,
+      });
+
+      setSeenIds(prev => {
+        const next = new Set(prev);
+        next.add(unseenPending.id);
+        return next;
+      });
+
+      const timer = setTimeout(() => setActiveToast(null), 8000);
+      return () => clearTimeout(timer);
+    }
+    
+    // Also add all current IDs to seen to prevent notifying for resolved/old ones
+    setSeenIds(prev => {
+      const next = new Set(prev);
+      serviceRequests.forEach(r => next.add(r.id));
+      return next;
+    });
+  }, [serviceRequests, seenIds, activeToast]);
 
   if (!activeToast) return null;
 
   const isBill = activeToast.type === "BILL";
 
   return (
-    <div className="fixed top-20 right-5 z-50 animate-slide-in-right">
+    <div className="fixed bottom-6 right-6 z-[60] animate-slide-in-right">
       <div className="flex items-center gap-4 bg-[#1c1c22] border border-brand-500/40 rounded-2xl px-5 py-4 shadow-2xl shadow-brand-500/20">
         <div className="relative flex-shrink-0">
           <div className="w-10 h-10 rounded-full bg-brand-500/20 flex items-center justify-center text-brand-400">

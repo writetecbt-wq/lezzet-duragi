@@ -121,25 +121,44 @@ export function AdminClient() {
   const [prevOrderCount, setPrevOrderCount] = useState(orders.length);
 
   // Detect newly added orders from other tabs or store directly
+  const [seenOrderIds, setSeenOrderIds] = useState<Set<string>>(new Set(orders.map(o => o.id)));
+
   useEffect(() => {
-    if (orders.length > prevOrderCount) {
-      // There are new orders
-      const latestOrder = orders[0]; // Since orders are unshifted (newest first)
-      setNewOrderIds((prev) => new Set([...prev, latestOrder.id]));
-      setNotification({ msg: `Masa ${latestOrder.tableNumber} yeni sipariş verdi!`, key: Date.now() });
+    // Initialize seenIds on first load
+    if (seenOrderIds.size === 0 && orders.length > 0 && !notification) {
+      setSeenOrderIds(new Set(orders.map(o => o.id)));
+      return;
+    }
+
+    // Find any order we haven't seen yet
+    const unseenOrder = orders.find(o => !seenOrderIds.has(o.id));
+
+    if (unseenOrder) {
+      setNewOrderIds((prev) => new Set([...prev, unseenOrder.id]));
+      setNotification({ msg: `Masa ${unseenOrder.tableNumber} yeni sipariş verdi!`, key: Date.now() });
       
       const timeoutId = setTimeout(() => {
-        setNewOrderIds((prev) => { const n = new Set(prev); n.delete(latestOrder.id); return n; });
+        setNewOrderIds((prev) => { const n = new Set(prev); n.delete(unseenOrder.id); return n; });
       }, 6000);
       
       const notifId = setTimeout(() => setNotification(null), 4500);
+
+      setSeenOrderIds(prev => {
+        const next = new Set(prev);
+        next.add(unseenOrder.id);
+        return next;
+      });
       
-      setPrevOrderCount(orders.length);
       return () => { clearTimeout(timeoutId); clearTimeout(notifId); };
-    } else if (orders.length < prevOrderCount) {
-      setPrevOrderCount(orders.length); // Handled clear/reset
     }
-  }, [orders.length, prevOrderCount, orders]);
+
+    // Keep seenIds up to date
+    setSeenOrderIds(prev => {
+      const next = new Set(prev);
+      orders.forEach(o => next.add(o.id));
+      return next;
+    });
+  }, [orders, seenOrderIds, notification]);
 
   const addSimulatedOrder = useCallback(() => {
     const mock = generateMockOrder();

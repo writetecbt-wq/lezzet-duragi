@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { X, Minus, Plus, Trash2, ShoppingCart, ChevronRight, MessageSquare } from "lucide-react";
 import { useCartStore } from "@/store/cart.store";
@@ -18,6 +18,11 @@ export function CartDrawer({ tableId, restaurantId }: CartDrawerProps) {
   const [notes, setNotes] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showNotes, setShowNotes] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const {
     items,
@@ -30,13 +35,15 @@ export function CartDrawer({ tableId, restaurantId }: CartDrawerProps) {
     totalPrice,
   } = useCartStore();
 
-  const itemCount = totalItems();
-  const total = totalPrice();
+  const itemCount = isMounted ? totalItems() : 0;
+  const total = isMounted ? totalPrice() : 0;
   const serviceFee = Math.round(total * 0.05);
   const grandTotal = total + serviceFee;
 
+  const displayItems = isMounted ? items : [];
+
   const handleSubmitOrder = useCallback(async () => {
-    if (items.length === 0) return;
+    if (displayItems.length === 0) return;
     setIsSubmitting(true);
 
     // Map cart items to order items

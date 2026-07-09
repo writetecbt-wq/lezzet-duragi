@@ -50,56 +50,102 @@ export type Category = {
   sortOrder: number;
 };
 
+// ─── Store ─────────────────────────────────────────────────────────────────
+
 type ProductStore = {
   products: Product[];
   categories: Category[];
+  isLoading: boolean;
 
   // Actions
-  addProduct: (product: Omit<Product, "id" | "sortOrder">) => void;
-  updateProduct: (id: string, data: Partial<Omit<Product, "id">>) => void;
-  deleteProduct: (id: string) => void;
-  toggleAvailability: (id: string) => void;
+  fetchProductsAndCategories: () => Promise<void>;
+  addProduct: (product: Omit<Product, "id" | "sortOrder">) => Promise<void>;
+  updateProduct: (id: string, data: Partial<Omit<Product, "id">>) => Promise<void>;
+  deleteProduct: (id: string) => Promise<void>;
+  toggleAvailability: (id: string) => Promise<void>;
 };
 
-// ─── Store ─────────────────────────────────────────────────────────────────
-
-let productIdCounter = 1000;
+import { db } from "@/lib/firebase/config";
+import { collection, getDocs, doc, setDoc, updateDoc, deleteDoc } from "firebase/firestore";
 
 export const useProductStore = create<ProductStore>((set, get) => ({
-  products: MOCK_PRODUCTS.map((p) => ({
-    ...p,
-    description: p.description ?? "",
-    imageUrl: p.imageUrl ?? "",
-    tags: (p as any).tags ?? [],
-  })),
+  products: [],
+  categories: [],
+  isLoading: false,
 
-  categories: MOCK_CATEGORIES,
+  fetchProductsAndCategories: async () => {
+    set({ isLoading: true });
+    try {
+      const [productsSnap, categoriesSnap] = await Promise.all([
+        getDocs(collection(db, "products")),
+        getDocs(collection(db, "categories"))
+      ]);
 
-  addProduct: (data) => {
-    productIdCounter++;
-    const newProduct: Product = {
-      ...data,
-      id: `prod_custom_${productIdCounter}`,
-      sortOrder: get().products.filter((p) => p.categoryId === data.categoryId).length + 1,
-    };
-    set((state) => ({ products: [...state.products, newProduct] }));
+      const products = productsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
+      const categories = categoriesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Category));
+
+      // Sort by sortOrder
+      products.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
+      categories.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
+
+      set({ products, categories, isLoading: false });
+    } catch (error) {
+      console.error("Error fetching data:", error);
+      set({ isLoading: false });
+    }
   },
 
-  updateProduct: (id, data) => {
-    set((state) => ({
-      products: state.products.map((p) => (p.id === id ? { ...p, ...data } : p)),
-    }));
+  addProduct: async (data) => {
+    try {
+      const newId = `prod_custom_${Date.now()}`;
+      const sortOrder = get().products.filter((p) => p.categoryId === data.categoryId).length + 1;
+      const newProduct: Product = {
+        ...data,
+        id: newId,
+        sortOrder,
+      };
+      
+      await setDoc(doc(db, "products", newId), newProduct);
+      set((state) => ({ products: [...state.products, newProduct] }));
+    } catch (error) {
+      console.error("Error adding product:", error);
+    }
   },
 
-  deleteProduct: (id) => {
-    set((state) => ({ products: state.products.filter((p) => p.id !== id) }));
+  updateProduct: async (id, data) => {
+    try {
+      await updateDoc(doc(db, "products", id), data);
+      set((state) => ({
+        products: state.products.map((p) => (p.id === id ? { ...p, ...data } : p)),
+      }));
+    } catch (error) {
+      console.error("Error updating product:", error);
+    }
   },
 
-  toggleAvailability: (id) => {
-    set((state) => ({
-      products: state.products.map((p) =>
-        p.id === id ? { ...p, isAvailable: !p.isAvailable } : p
-      ),
-    }));
+  deleteProduct: async (id) => {
+    try {
+      await deleteDoc(doc(db, "products", id));
+      set((state) => ({ products: state.products.filter((p) => p.id !== id) }));
+    } catch (error) {
+      console.error("Error deleting product:", error);
+    }
+  },
+
+  toggleAvailability: async (id) => {
+    const product = get().products.find(p => p.id === id);
+    if (!product) return;
+    
+    try {
+      const newAvailability = !product.isAvailable;
+      await updateDoc(doc(db, "products", id), { isAvailable: newAvailability });
+      set((state) => ({
+        products: state.products.map((p) =>
+          p.id === id ? { ...p, isAvailable: newAvailability } : p
+        ),
+      }));
+    } catch (error) {
+      console.error("Error toggling availability:", error);
+    }
   },
 }));
