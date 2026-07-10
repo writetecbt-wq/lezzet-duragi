@@ -25,7 +25,7 @@ export const MOCK_PRODUCTS = [
     isAvailable: true,
     sortOrder: 1,
     categoryId: "cat_yiyecek_001",
-    tags: ["acili"],
+    tags: ["spicy"],
   },
   {
     id: "prod_002",
@@ -47,7 +47,7 @@ export const MOCK_PRODUCTS = [
     isAvailable: true,
     sortOrder: 3,
     categoryId: "cat_yiyecek_001",
-    tags: ["sut"],
+    tags: ["contains-dairy"],
   },
   {
     id: "prod_004",
@@ -58,7 +58,7 @@ export const MOCK_PRODUCTS = [
     isAvailable: true,
     sortOrder: 4,
     categoryId: "cat_yiyecek_001",
-    tags: ["vegan", "glutenFree"],
+    tags: ["vegan", "gluten-free"],
   },
   {
     id: "prod_005",
@@ -69,7 +69,7 @@ export const MOCK_PRODUCTS = [
     isAvailable: true,
     sortOrder: 5,
     categoryId: "cat_yiyecek_001",
-    tags: ["vejetaryen", "sut", "yumurta"],
+    tags: ["vegetarian", "contains-dairy"],
   },
   {
     id: "prod_006",
@@ -80,7 +80,7 @@ export const MOCK_PRODUCTS = [
     isAvailable: false,
     sortOrder: 6,
     categoryId: "cat_yiyecek_001",
-    tags: ["sut"],
+    tags: ["contains-dairy"],
   },
   {
     id: "prod_006_2",
@@ -91,7 +91,7 @@ export const MOCK_PRODUCTS = [
     isAvailable: true,
     sortOrder: 7,
     categoryId: "cat_yiyecek_001",
-    tags: ["sut", "yumurta", "acili"],
+    tags: ["contains-dairy", "spicy"],
   },
   {
     id: "prod_006_3",
@@ -102,7 +102,7 @@ export const MOCK_PRODUCTS = [
     isAvailable: true,
     sortOrder: 8,
     categoryId: "cat_yiyecek_001",
-    tags: ["acili"],
+    tags: ["spicy"],
   },
   {
     id: "prod_006_4",
@@ -113,7 +113,7 @@ export const MOCK_PRODUCTS = [
     isAvailable: true,
     sortOrder: 9,
     categoryId: "cat_yiyecek_001",
-    tags: ["acili"],
+    tags: ["spicy"],
   },
   // ── İçecekler ──
   {
@@ -125,7 +125,7 @@ export const MOCK_PRODUCTS = [
     isAvailable: true,
     sortOrder: 1,
     categoryId: "cat_icecek_001",
-    tags: ["vegan", "glutenFree"],
+    tags: ["vegan", "gluten-free"],
   },
   {
     id: "prod_008",
@@ -136,7 +136,7 @@ export const MOCK_PRODUCTS = [
     isAvailable: true,
     sortOrder: 2,
     categoryId: "cat_icecek_001",
-    tags: ["vegan", "glutenFree"],
+    tags: ["vegan", "gluten-free"],
   },
   {
     id: "prod_009",
@@ -147,7 +147,7 @@ export const MOCK_PRODUCTS = [
     isAvailable: true,
     sortOrder: 3,
     categoryId: "cat_icecek_001",
-    tags: ["vegan", "glutenFree"],
+    tags: ["vegan", "gluten-free"],
   },
   {
     id: "prod_010",
@@ -158,7 +158,7 @@ export const MOCK_PRODUCTS = [
     isAvailable: true,
     sortOrder: 4,
     categoryId: "cat_icecek_001",
-    tags: ["vegan", "glutenFree"],
+    tags: ["vegan", "gluten-free"],
   },
   {
     id: "prod_010_2",
@@ -169,7 +169,7 @@ export const MOCK_PRODUCTS = [
     isAvailable: true,
     sortOrder: 5,
     categoryId: "cat_icecek_001",
-    tags: ["vejetaryen", "glutenFree", "sut"],
+    tags: ["vegetarian", "gluten-free", "contains-dairy"],
   },
   {
     id: "prod_010_3",
@@ -180,7 +180,7 @@ export const MOCK_PRODUCTS = [
     isAvailable: true,
     sortOrder: 6,
     categoryId: "cat_icecek_001",
-    tags: ["sut"],
+    tags: ["contains-dairy", "vegetarian"],
   },
   // ── Tatlılar ──
   {
@@ -192,7 +192,7 @@ export const MOCK_PRODUCTS = [
     isAvailable: true,
     sortOrder: 1,
     categoryId: "cat_tatli_001",
-    tags: ["vejetaryen", "sut", "yumurta"],
+    tags: ["vegetarian", "contains-dairy"],
   },
   {
     id: "prod_012",
@@ -203,7 +203,7 @@ export const MOCK_PRODUCTS = [
     isAvailable: true,
     sortOrder: 2,
     categoryId: "cat_tatli_001",
-    tags: ["vejetaryen", "fistik", "sut"],
+    tags: ["vegetarian", "contains-nuts", "contains-dairy"],
   },
   {
     id: "prod_013",
@@ -214,7 +214,7 @@ export const MOCK_PRODUCTS = [
     isAvailable: true,
     sortOrder: 3,
     categoryId: "cat_tatli_001",
-    tags: ["vejetaryen", "sut", "yumurta"],
+    tags: ["vegetarian", "contains-dairy"],
   },
   {
     id: "prod_014",
@@ -225,7 +225,7 @@ export const MOCK_PRODUCTS = [
     isAvailable: true,
     sortOrder: 4,
     categoryId: "cat_tatli_001",
-    tags: ["vejetaryen", "sut"],
+    tags: ["vegetarian", "contains-dairy"],
   },
   {
     id: "prod_015",
@@ -236,11 +236,22 @@ export const MOCK_PRODUCTS = [
     isAvailable: true,
     sortOrder: 5,
     categoryId: "cat_tatli_001",
-    tags: ["vejetaryen", "sut", "yumurta"],
+    tags: ["vegetarian", "contains-dairy"],
   },
 ];
 
 // ─── Mock Orders (for Admin panel) ────────────────────────────────────────
+
+export type MockProduct = {
+  id: string;
+  categoryId: string;
+  name: string;
+  description: string;
+  price: number;
+  imageUrl?: string;
+  isAvailable: boolean;
+  tags?: ("vegan" | "vegetarian" | "gluten-free" | "contains-dairy" | "contains-nuts" | "spicy")[];
+};
 
 export type MockOrderItem = {
   productId: string;
@@ -252,11 +263,13 @@ export type MockOrderItem = {
 export type MockOrder = {
   id: string;
   tableNumber: number;
-  status: "PENDING" | "PREPARING" | "COMPLETED" | "CANCELLED";
+  status: "PENDING" | "PREPARING" | "COMPLETED" | "PAID" | "CANCELLED";
   totalAmount: number;
   createdAt: Date;
+  completedAt?: Date;
   notes?: string;
   items: MockOrderItem[];
+  waiterName?: string;
 };
 
 export const MOCK_ORDERS: MockOrder[] = [

@@ -16,6 +16,7 @@ export type FirestoreOrder = {
   completedAt?: Date;
   items: MockOrderItem[];
   notes?: string;
+  waiterName?: string;
   restaurantId?: string;
 };
 
@@ -50,7 +51,7 @@ type OrderStore = {
     totalAmount: number,
     notes?: string
   ) => Promise<void>;
-  updateOrderStatus: (orderId: string, status: OrderStatus) => Promise<void>;
+  updateOrderStatus: (orderId: string, status: OrderStatus, waiterName?: string) => Promise<void>;
   cancelOrder: (orderId: string) => Promise<void>;
 
   // Garson: Sipariş düzenleme
@@ -64,6 +65,9 @@ type OrderStore = {
   // Admin Realtime Listeners
   listenToOrders: () => () => void; // returns unsubscribe function
   listenToServiceRequests: () => () => void;
+  
+  // Müşteri Yorum (Review)
+  submitReview: (orderId: string, tableNumber: number, rating: number, comment?: string) => Promise<void>;
 };
 
 export const useOrderStore = create<OrderStore>()(
@@ -96,17 +100,25 @@ export const useOrderStore = create<OrderStore>()(
         }
       },
 
-      updateOrderStatus: async (orderId, status) => {
+      updateOrderStatus: async (orderId, status, waiterName) => {
         try {
           const updateData: Record<string, unknown> = { status };
           if (status === "COMPLETED") {
             updateData.completedAt = serverTimestamp();
           }
+          if (waiterName) {
+            updateData.waiterName = waiterName;
+          }
           await updateDoc(doc(db, "orders", orderId), updateData);
           set((state) => ({
             orders: state.orders.map((o) =>
               o.id === orderId
-                ? { ...o, status, ...(status === "COMPLETED" ? { completedAt: new Date() } : {}) }
+                ? { 
+                    ...o, 
+                    status, 
+                    ...(status === "COMPLETED" ? { completedAt: new Date() } : {}),
+                    ...(waiterName ? { waiterName } : {})
+                  }
                 : o
             ),
           }));
@@ -194,9 +206,27 @@ export const useOrderStore = create<OrderStore>()(
         }
       },
 
+      submitReview: async (orderId, tableNumber, rating, comment) => {
+        const reviewId = `rev_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+        try {
+          await setDoc(doc(db, "reviews", reviewId), {
+            id: reviewId,
+            orderId,
+            tableNumber,
+            rating,
+            comment: comment || "",
+            createdAt: serverTimestamp(),
+            restaurantId: "rest_demo_001",
+          });
+        } catch (error) {
+          console.error("Error submitting review:", error);
+        }
+      },
+
       listenToOrders: () => {
         const q = query(collection(db, "orders"), orderBy("createdAt", "desc"));
         const unsubscribe = onSnapshot(q, (snapshot) => {
+          const now = new Date();
           const orders = snapshot.docs.map((doc) => {
             const data = doc.data();
             return {
@@ -205,7 +235,7 @@ export const useOrderStore = create<OrderStore>()(
               createdAt: data.createdAt ? (data.createdAt as Timestamp).toDate() : new Date(),
               completedAt: data.completedAt ? (data.completedAt as Timestamp).toDate() : undefined,
             } as FirestoreOrder;
-          });
+          }).filter(o => (now.getTime() - o.createdAt.getTime()) < 12 * 60 * 60 * 1000); // Sadece son 12 saatin siparişlerini tut
           set({ orders });
         });
         return unsubscribe;

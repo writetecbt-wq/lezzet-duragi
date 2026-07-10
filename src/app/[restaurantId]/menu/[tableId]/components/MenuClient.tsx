@@ -14,6 +14,7 @@ import { useTableStore } from "@/store/table.store";
 import { useOrderStore } from "@/store/order.store";
 import { formatPrice, MOCK_CATEGORIES } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
+import { CustomerOrderWidget } from "./CustomerOrderWidget";
 
 type MenuClientProps = {
   tableNumber: string;
@@ -24,12 +25,15 @@ export function MenuClient({ tableNumber }: MenuClientProps) {
   const [isMounted, setIsMounted] = useState(false);
 
   const { products, fetchProductsAndCategories, categories, isLoading } = useProductStore();
+  const { listenToOrders, orders } = useOrderStore();
 
   useEffect(() => {
     fetchProductsAndCategories().then(() => {
       setIsMounted(true);
     });
-  }, [fetchProductsAndCategories]);
+    const unsub = listenToOrders();
+    return () => unsub();
+  }, [fetchProductsAndCategories, listenToOrders]);
 
   const { addItem, items, updateQuantity, openCart, totalItems, totalPrice } =
     useCartStore();
@@ -180,6 +184,8 @@ export function MenuClient({ tableNumber }: MenuClientProps) {
           </button>
         </div>
       )}
+
+      {isMounted && <CustomerOrderWidget tableNumber={tableNum} orders={orders} />}
     </div>
   );
 }
@@ -240,6 +246,7 @@ function HorizontalProductCard({
           <p className="font-sans text-[12px] leading-relaxed text-on-surface-variant font-light mt-0.5 line-clamp-2">
             {product.description}
           </p>
+          <ProductTags tags={product.tags} />
         </div>
 
         <div className="flex items-center justify-between mt-2">
@@ -319,6 +326,8 @@ function GridProductCard({
             {formatPrice(product.price)}
           </span>
         </div>
+        
+        <ProductTags tags={product.tags} />
         
         <div className="mt-auto">
           {!product.isAvailable ? (
@@ -414,6 +423,41 @@ function InvalidTablePage({
           Bu restoranda <span className="font-semibold text-on-surface">{totalTables} masa</span> bulunuyor.
         </p>
       </div>
+    </div>
+  );
+}
+
+// ─── Product Tags (Allergens & Diets) ─────────────────────────────────────────
+function ProductTags({ tags }: { tags?: string[] }) {
+  if (!tags || tags.length === 0) return null;
+
+  const tagConfig: Record<string, { label: string; icon: string; color: string }> = {
+    "vegan": { label: "Vegan", icon: "🌱", color: "text-green-600 bg-green-50 border-green-200" },
+    "vegetarian": { label: "Vejetaryen", icon: "🌿", color: "text-emerald-600 bg-emerald-50 border-emerald-200" },
+    "gluten-free": { label: "Glutensiz", icon: "🌾", color: "text-amber-600 bg-amber-50 border-amber-200" },
+    "contains-dairy": { label: "Süt Ürünü", icon: "🥛", color: "text-blue-600 bg-blue-50 border-blue-200" },
+    "contains-nuts": { label: "Fındık/Fıstık", icon: "🥜", color: "text-orange-600 bg-orange-50 border-orange-200" },
+    "spicy": { label: "Acılı", icon: "🌶️", color: "text-red-600 bg-red-50 border-red-200" },
+  };
+
+  return (
+    <div className="flex flex-wrap gap-1.5 mt-1">
+      {tags.map(tag => {
+        const config = tagConfig[tag];
+        if (!config) return null;
+        return (
+          <span 
+            key={tag} 
+            className={cn(
+              "flex items-center gap-1 px-1.5 py-0.5 rounded-sm border text-[9px] uppercase tracking-wider font-bold", 
+              config.color
+            )}
+            title={config.label}
+          >
+            <span className="text-[10px] leading-none">{config.icon}</span> {config.label}
+          </span>
+        );
+      })}
     </div>
   );
 }

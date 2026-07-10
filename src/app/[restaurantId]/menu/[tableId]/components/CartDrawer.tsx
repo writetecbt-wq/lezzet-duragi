@@ -54,25 +54,26 @@ export function CartDrawer({ tableId, restaurantId }: CartDrawerProps) {
       unitPrice: item.price,
     }));
 
-    // Save to store (syncs with admin panel)
-    useOrderStore.getState().placeOrder(
-      Number(tableId),
-      orderItems,
-      grandTotal,
-      notes.trim() || undefined
-    );
+    try {
+      // Save to store (syncs with admin panel)
+      await useOrderStore.getState().placeOrder(
+        Number(tableId),
+        orderItems,
+        grandTotal,
+        notes.trim() || undefined
+      );
 
-    // Simulate API call delay for UX
-    await new Promise((r) => setTimeout(r, 1200));
+      // Simulate API call delay for UX
+      await new Promise((r) => setTimeout(r, 1200));
 
-    clearCart();
-    closeCart();
-
-    // Navigate to confirmation
-    router.push(
-      `/order-confirmed?table=${tableId}&restaurant=${restaurantId}&amount=${grandTotal}`
-    );
-  }, [items, clearCart, closeCart, router, tableId, restaurantId, grandTotal, notes]);
+      clearCart();
+      closeCart();
+    } catch (error) {
+      console.error("Order error", error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  }, [items, clearCart, closeCart, tableId, grandTotal, notes]);
 
   if (!isOpen) return null;
 

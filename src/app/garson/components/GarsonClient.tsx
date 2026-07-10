@@ -20,20 +20,17 @@ import {
   Search,
 } from "lucide-react";
 import { formatPrice, timeAgo, formatTime, getOrderDuration, MockOrderItem, MOCK_PRODUCTS } from "@/lib/mock-data";
+import { OrderEditor } from "@/components/shared/OrderEditor";
 
 export function GarsonClient() {
-  const { orders, serviceRequests, resolveServiceRequest, listenToOrders, listenToServiceRequests, updateOrderItems, changeOrderTable, updateOrderStatus } = useOrderStore();
+  const { orders, placeOrder, serviceRequests, resolveServiceRequest, listenToOrders, listenToServiceRequests, updateOrderItems, changeOrderTable, updateOrderStatus } = useOrderStore();
   const { products, fetchProductsAndCategories, categories } = useProductStore();
   const { totalTables } = useTableStore();
   const [selectedTable, setSelectedTable] = useState<number | null>(null);
   const [editingOrder, setEditingOrder] = useState<string | null>(null);
   const [changingTable, setChangingTable] = useState<string | null>(null);
 
-  // Initialize listeners
-  const initializedRef = useRef(false);
   useEffect(() => {
-    if (initializedRef.current) return;
-    initializedRef.current = true;
     fetchProductsAndCategories();
     const unsubOrders = listenToOrders();
     const unsubRequests = listenToServiceRequests();
@@ -142,6 +139,7 @@ export function GarsonClient() {
           updateOrderItems={updateOrderItems}
           changeOrderTable={changeOrderTable}
           updateOrderStatus={updateOrderStatus}
+          placeOrder={placeOrder}
           products={products}
           categories={categories}
           totalTables={totalTables}
@@ -167,6 +165,7 @@ function TableDetailPanel({
   updateOrderItems,
   changeOrderTable,
   updateOrderStatus,
+  placeOrder,
   products,
   categories,
   totalTables,
@@ -183,7 +182,8 @@ function TableDetailPanel({
   setChangingTable: (id: string | null) => void;
   updateOrderItems: (orderId: string, items: MockOrderItem[], total: number) => void;
   changeOrderTable: (orderId: string, newTable: number) => void;
-  updateOrderStatus: (orderId: string, status: "PENDING" | "PREPARING" | "COMPLETED" | "PAID" | "CANCELLED") => void;
+  updateOrderStatus: (orderId: string, status: "PENDING" | "PREPARING" | "COMPLETED" | "PAID" | "CANCELLED", waiterName?: string) => void;
+  placeOrder: (tableNumber: number, items: MockOrderItem[], totalAmount: number, notes?: string) => Promise<void>;
   products: ReturnType<typeof useProductStore.getState>["products"];
   categories: ReturnType<typeof useProductStore.getState>["categories"];
   totalTables: number;
@@ -195,6 +195,7 @@ function TableDetailPanel({
   const activeRequests = serviceRequests.filter(
     (r) => r.tableNumber === tableNumber && r.status === "PENDING"
   );
+  const [isCreatingOrder, setIsCreatingOrder] = useState(false);
 
   return (
     <div className="fixed inset-y-0 right-0 w-full max-w-md bg-[#16161b] border-l border-white/10 shadow-2xl z-50 flex flex-col animate-slide-in-right">
@@ -257,8 +258,33 @@ function TableDetailPanel({
 
         {/* Orders */}
         <div className="space-y-3">
-          <h4 className="text-xs font-bold text-zinc-500 uppercase tracking-wider">Siparişler</h4>
-          {tableOrders.length === 0 ? (
+          <div className="flex items-center justify-between">
+            <h4 className="text-xs font-bold text-zinc-500 uppercase tracking-wider">Siparişler</h4>
+            {!isCreatingOrder && (
+              <button
+                onClick={() => setIsCreatingOrder(true)}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-brand-500/15 border border-brand-500/30 text-brand-400 hover:bg-brand-500/25 text-xs font-semibold rounded-lg transition-all"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                Yeni Sipariş
+              </button>
+            )}
+          </div>
+
+          {isCreatingOrder && (
+            <OrderEditor
+              initialItems={[]}
+              products={products}
+              categories={categories}
+              onSave={(items, total) => {
+                placeOrder(tableNumber, items, total);
+                setIsCreatingOrder(false);
+              }}
+              onCancel={() => setIsCreatingOrder(false)}
+            />
+          )}
+
+          {tableOrders.length === 0 && !isCreatingOrder ? (
             <p className="text-sm text-zinc-500 bg-white/5 p-4 rounded-xl border border-white/5">
               Bu masada aktif sipariş yok.
             </p>
@@ -267,7 +293,7 @@ function TableDetailPanel({
               <div key={order.id}>
                 {editingOrder === order.id ? (
                   <OrderEditor
-                    order={order}
+                    initialItems={order.items}
                     products={products}
                     categories={categories}
                     onSave={(items, total) => {
@@ -292,7 +318,7 @@ function TableDetailPanel({
                     order={order}
                     onEdit={() => setEditingOrder(order.id)}
                     onChangeTable={() => setChangingTable(order.id)}
-                    onStatusChange={(newStatus) => updateOrderStatus(order.id, newStatus)}
+                    onStatusChange={(newStatus) => updateOrderStatus(order.id, newStatus, newStatus === "PREPARING" ? "garson1" : undefined)}
                   />
                 )}
               </div>
@@ -391,150 +417,6 @@ function OrderCard({
         >
           <ArrowRightLeft className="w-3.5 h-3.5" />
           Masa Değiştir
-        </button>
-      </div>
-    </div>
-  );
-}
-
-// ─── Order Editor (edit items) ──────────────────────────────────────────────
-
-function OrderEditor({
-  order,
-  products,
-  categories,
-  onSave,
-  onCancel,
-}: {
-  order: FirestoreOrder;
-  products: ReturnType<typeof useProductStore.getState>["products"];
-  categories: ReturnType<typeof useProductStore.getState>["categories"];
-  onSave: (items: MockOrderItem[], total: number) => void;
-  onCancel: () => void;
-}) {
-  const [items, setItems] = useState<MockOrderItem[]>([...order.items]);
-  const [showAddProduct, setShowAddProduct] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-
-  const total = items.reduce((s, i) => s + i.quantity * i.unitPrice, 0);
-
-  const updateItemQty = (index: number, delta: number) => {
-    setItems((prev) => {
-      const copy = [...prev];
-      copy[index] = { ...copy[index], quantity: copy[index].quantity + delta };
-      if (copy[index].quantity <= 0) {
-        copy.splice(index, 1);
-      }
-      return copy;
-    });
-  };
-
-  const removeItem = (index: number) => {
-    setItems((prev) => prev.filter((_, i) => i !== index));
-  };
-
-  const addProduct = (product: { id: string; name: string; price: number }) => {
-    const existing = items.findIndex((i) => i.productId === product.id);
-    if (existing >= 0) {
-      updateItemQty(existing, 1);
-    } else {
-      setItems((prev) => [
-        ...prev,
-        { productId: product.id, name: product.name, quantity: 1, unitPrice: product.price },
-      ]);
-    }
-    setShowAddProduct(false);
-    setSearchQuery("");
-  };
-
-  const availableProducts = (products.length > 0 ? products : MOCK_PRODUCTS).filter(
-    (p) => p.isAvailable && p.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  return (
-    <div className="bg-blue-500/5 border border-blue-500/20 rounded-xl p-4">
-      <div className="flex items-center justify-between mb-3">
-        <h4 className="text-sm font-bold text-blue-400">Sipariş Düzenleme</h4>
-        <button onClick={onCancel} className="text-xs text-zinc-500 hover:text-zinc-300">İptal</button>
-      </div>
-
-      {/* Current items */}
-      <div className="space-y-2 mb-4">
-        {items.map((item, idx) => (
-          <div key={idx} className="flex items-center gap-2 bg-white/5 rounded-lg px-3 py-2">
-            <span className="flex-1 text-sm text-zinc-300 truncate">{item.name}</span>
-            <div className="flex items-center gap-1">
-              <button onClick={() => updateItemQty(idx, -1)} className="w-6 h-6 rounded bg-white/10 flex items-center justify-center text-zinc-400 hover:text-white">
-                <Minus className="w-3 h-3" />
-              </button>
-              <span className="text-sm font-bold text-white w-6 text-center">{item.quantity}</span>
-              <button onClick={() => updateItemQty(idx, 1)} className="w-6 h-6 rounded bg-white/10 flex items-center justify-center text-zinc-400 hover:text-white">
-                <Plus className="w-3 h-3" />
-              </button>
-            </div>
-            <span className="text-xs text-zinc-500 w-16 text-right">{formatPrice(item.unitPrice * item.quantity)}</span>
-            <button onClick={() => removeItem(idx)} className="p-1 text-red-400 hover:text-red-300">
-              <Trash2 className="w-3.5 h-3.5" />
-            </button>
-          </div>
-        ))}
-      </div>
-
-      {/* Add product */}
-      {showAddProduct ? (
-        <div className="mb-4 border border-white/10 rounded-xl p-3 bg-white/3">
-          <div className="relative mb-2">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-500" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Ürün ara..."
-              className="w-full pl-9 pr-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm text-white placeholder:text-zinc-600 focus:outline-none focus:ring-1 focus:ring-blue-500/50"
-              autoFocus
-            />
-          </div>
-          <div className="max-h-40 overflow-y-auto space-y-1">
-            {availableProducts.slice(0, 10).map((p) => (
-              <button
-                key={p.id}
-                onClick={() => addProduct(p)}
-                className="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-white/8 text-left transition-colors"
-              >
-                <span className="text-sm text-zinc-300">{p.name}</span>
-                <span className="text-xs text-brand-400 font-semibold">{formatPrice(p.price)}</span>
-              </button>
-            ))}
-          </div>
-          <button onClick={() => { setShowAddProduct(false); setSearchQuery(""); }} className="mt-2 w-full text-xs text-zinc-500 hover:text-zinc-300 py-1">
-            Kapat
-          </button>
-        </div>
-      ) : (
-        <button
-          onClick={() => setShowAddProduct(true)}
-          className="w-full mb-4 py-2 rounded-lg border border-dashed border-blue-500/30 text-blue-400 text-xs font-semibold hover:bg-blue-500/10 transition-colors flex items-center justify-center gap-1.5"
-        >
-          <Plus className="w-3.5 h-3.5" />
-          Ürün Ekle
-        </button>
-      )}
-
-      {/* Total & Save */}
-      <div className="flex items-center justify-between pt-3 border-t border-white/10">
-        <span className="text-sm font-bold text-white">Toplam: {formatPrice(total)}</span>
-        <button
-          onClick={() => onSave(items, total)}
-          disabled={items.length === 0}
-          className={cn(
-            "flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all",
-            items.length === 0
-              ? "bg-zinc-800 text-zinc-600 cursor-not-allowed"
-              : "bg-green-500 hover:bg-green-600 text-white"
-          )}
-        >
-          <Check className="w-3.5 h-3.5" />
-          Kaydet
         </button>
       </div>
     </div>

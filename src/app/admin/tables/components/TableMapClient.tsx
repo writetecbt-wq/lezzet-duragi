@@ -36,7 +36,7 @@ export function TableMapClient() {
     const tableOrders = orders.filter(
       (o) =>
         o.tableNumber === tableNumber &&
-        o.status !== "COMPLETED" &&
+        o.status !== "PAID" &&
         o.status !== "CANCELLED"
     );
     const activeRequests = serviceRequests.filter(
@@ -56,14 +56,19 @@ export function TableMapClient() {
       statusLabel = "Garson Bekliyor";
     } else if (isOccupied) {
       const isPreparing = tableOrders.some((o) => o.status === "PREPARING");
+      const isPending = tableOrders.some((o) => o.status === "PENDING");
       if (isPreparing) {
         bgColor = "bg-blue-500/10 border-blue-500/30";
         textColor = "text-blue-400";
         statusLabel = "Hazırlanıyor";
-      } else {
+      } else if (isPending) {
         bgColor = "bg-amber-500/10 border-amber-500/30";
         textColor = "text-amber-400";
         statusLabel = "Sipariş Bekliyor";
+      } else {
+        bgColor = "bg-emerald-500/10 border-emerald-500/30";
+        textColor = "text-emerald-400";
+        statusLabel = "Hesap Bekliyor";
       }
     }
 
@@ -379,10 +384,12 @@ function TableDetailsPanel({
                       "text-[10px] font-bold px-2 py-1 rounded-md",
                       order.status === "PENDING"
                         ? "bg-amber-500/20 text-amber-400"
-                        : "bg-blue-500/20 text-blue-400"
+                        : order.status === "PREPARING"
+                        ? "bg-blue-500/20 text-blue-400"
+                        : "bg-emerald-500/20 text-emerald-400"
                     )}
                   >
-                    {order.status === "PENDING" ? "YENİ SİPARİŞ" : "HAZIRLANIYOR"}
+                    {order.status === "PENDING" ? "YENİ SİPARİŞ" : order.status === "PREPARING" ? "HAZIRLANIYOR" : "TAMAMLANDI"}
                   </span>
                   <div className="flex items-center text-xs text-zinc-400 font-medium">
                     <Clock className="w-3.5 h-3.5 mr-1" />

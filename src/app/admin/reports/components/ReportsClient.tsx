@@ -15,7 +15,7 @@ import {
   Pie,
   Cell,
 } from "recharts";
-import { TrendingUp, ShoppingBag, DollarSign } from "lucide-react";
+import { TrendingUp, ShoppingBag, DollarSign, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const COLORS = ["#f97316", "#3b82f6", "#10b981", "#8b5cf6", "#ec4899"];
@@ -23,8 +23,16 @@ const COLORS = ["#f97316", "#3b82f6", "#10b981", "#8b5cf6", "#ec4899"];
 export function ReportsClient() {
   const { orders } = useOrderStore();
 
-  const { totalRevenue, completedCount, popularItems, hourlyData } = useMemo(() => {
-    const completedOrders = orders.filter((o) => o.status === "COMPLETED");
+  const { 
+    totalRevenue, 
+    completedCount, 
+    popularItems, 
+    hourlyData, 
+    topRevenueItems, 
+    busiestHour, 
+    avgPrepMins 
+  } = useMemo(() => {
+    const completedOrders = orders.filter((o) => o.status === "COMPLETED" || o.status === "PAID");
     
     // Total Revenue
     const revenue = completedOrders.reduce((sum, o) => sum + o.totalAmount, 0);
@@ -44,6 +52,10 @@ export function ReportsClient() {
       .sort((a, b) => b.count - a.count)
       .slice(0, 5); // Top 5
 
+    const topRevenue = Array.from(itemMap.values())
+      .sort((a, b) => b.revenue - a.revenue)
+      .slice(0, 5); // Top 5 by revenue
+
     // Hourly Data (mocking today's timeline based on orders)
     // To make it look good for the prototype even with few orders, we'll bucket them roughly.
     const hourMap = new Map<number, number>();
@@ -59,11 +71,29 @@ export function ReportsClient() {
         Ciro: amount,
       }));
 
+    const busiestHour = hourly.length > 0 
+      ? hourly.reduce((max, h) => h.Ciro > max.Ciro ? h : max, hourly[0]).time 
+      : "-";
+
+    // Prep time
+    let totalPrepMs = 0;
+    let prepCount = 0;
+    completedOrders.forEach(o => {
+      if (o.completedAt) {
+        totalPrepMs += (new Date(o.completedAt).getTime() - new Date(o.createdAt).getTime());
+        prepCount++;
+      }
+    });
+    const avgPrepMins = prepCount > 0 ? Math.round(totalPrepMs / prepCount / 60000) : 0;
+
     return {
       totalRevenue: revenue,
       completedCount: completedOrders.length,
       popularItems: popular,
+      topRevenueItems: topRevenue,
       hourlyData: hourly.length > 0 ? hourly : [{ time: "Henüz Veri Yok", Ciro: 0 }],
+      busiestHour,
+      avgPrepMins,
     };
   }, [orders]);
 
@@ -75,10 +105,11 @@ export function ReportsClient() {
       </div>
 
       {/* Overview Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard title="Toplam Ciro" value={formatPrice(totalRevenue)} icon={DollarSign} color="text-brand-400" />
         <StatCard title="Tamamlanan Sipariş" value={completedCount} icon={ShoppingBag} color="text-blue-400" />
         <StatCard title="Ortalama Sepet Tutarı" value={completedCount ? formatPrice(totalRevenue / completedCount) : formatPrice(0)} icon={TrendingUp} color="text-green-400" />
+        <StatCard title="Ort. Hazırlanma" value={`${avgPrepMins} dk`} icon={Clock} color="text-amber-400" />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -143,6 +174,40 @@ export function ReportsClient() {
               <p className="text-sm text-zinc-500">Yeterli veri yok.</p>
             </div>
           )}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+        {/* Top Revenue Items */}
+        <div className="bg-[#16161b] border border-white/10 rounded-2xl p-6 shadow-xl">
+          <h3 className="text-lg font-bold text-white mb-6">En Çok Ciro Getiren Ürünler</h3>
+          <div className="space-y-4">
+            {topRevenueItems.map((item, idx) => (
+              <div key={idx} className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-brand-500/10 flex items-center justify-center text-brand-400 font-bold text-xs">
+                    {idx + 1}
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-white">{item.name}</p>
+                    <p className="text-xs text-zinc-500">{item.count} adet satıldı</p>
+                  </div>
+                </div>
+                <p className="text-sm font-bold text-brand-400">{formatPrice(item.revenue)}</p>
+              </div>
+            ))}
+            {topRevenueItems.length === 0 && <p className="text-sm text-zinc-500">Yeterli veri yok.</p>}
+          </div>
+        </div>
+
+        {/* Busiest Hour Info */}
+        <div className="bg-[#16161b] border border-white/10 rounded-2xl p-6 shadow-xl flex flex-col justify-center items-center text-center">
+          <div className="w-16 h-16 rounded-full bg-purple-500/10 flex items-center justify-center mb-4">
+            <Clock className="w-8 h-8 text-purple-400" />
+          </div>
+          <h3 className="text-lg font-bold text-zinc-400 mb-1">En Yoğun Saat</h3>
+          <p className="text-4xl font-black text-white">{busiestHour}</p>
+          <p className="text-sm text-zinc-500 mt-2">Günlük siparişlerin çoğu bu saat aralığında verildi.</p>
         </div>
       </div>
     </div>

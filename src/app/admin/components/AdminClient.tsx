@@ -20,8 +20,10 @@ import {
   formatTime,
   getOrderDuration,
 } from "@/lib/mock-data";
-import { useOrderStore } from "@/store/order.store";
+import { useOrderStore, FirestoreOrder } from "@/store/order.store";
 import { cn } from "@/lib/utils";
+import { OrderEditor } from "@/components/shared/OrderEditor";
+import { useProductStore } from "@/store/product.store";
 
 type OrderStatus = "PENDING" | "PREPARING" | "COMPLETED" | "PAID" | "CANCELLED";
 
@@ -127,10 +129,12 @@ function generateMockOrder(): MockOrder {
 // ─── Main Component ────────────────────────────────────────────────────────
 
 export function AdminClient() {
-  const { orders, updateOrderStatus, cancelOrder, placeOrder } = useOrderStore();
+  const { orders, cancelOrder, updateOrderStatus, updateOrderItems, placeOrder } = useOrderStore();
+  const { products, categories } = useProductStore();
   const [notification, setNotification] = useState<{ msg: string; key: number } | null>(null);
   const [newOrderIds, setNewOrderIds] = useState<Set<string>>(new Set());
   const [view, setView] = useState<"kanban" | "list">("kanban");
+  const [editingOrder, setEditingOrder] = useState<FirestoreOrder | MockOrder | null>(null);
   const [prevOrderCount, setPrevOrderCount] = useState(orders.length);
 
   // Detect newly added orders from other tabs or store directly
@@ -182,7 +186,7 @@ export function AdminClient() {
   const pending = orders.filter((o) => o.status === "PENDING").length;
   const preparing = orders.filter((o) => o.status === "PREPARING").length;
   const completed = orders.filter((o) => o.status === "COMPLETED").length;
-  const revenue = orders.filter((o) => o.status === "COMPLETED").reduce((s, o) => s + o.totalAmount, 0);
+  const revenue = orders.filter((o) => o.status === "COMPLETED" || o.status === "PAID").reduce((s, o) => s + o.totalAmount, 0);
 
   const COLUMNS: OrderStatus[] = ["PENDING", "PREPARING", "COMPLETED"];
 
@@ -279,14 +283,38 @@ export function AdminClient() {
                         <p className="text-xs text-zinc-700">Sipariş yok</p>
                       </div>
                     ) : (
-                      col.map((order) => (
+                      (status === "COMPLETED"
+                        ? Array.from(
+                            col.reduce((map, order) => {
+                              const existing = map.get(order.tableNumber);
+                              if (existing) {
+                                existing.items.push(...order.items);
+                                existing.totalAmount += order.totalAmount;
+                                existing.id += "," + order.id; // Store comma-separated IDs
+                              } else {
+                                // Deep copy to avoid mutating original state
+                                map.set(order.tableNumber, {
+                                  ...order,
+                                  items: [...order.items],
+                                });
+                              }
+                              return map;
+                            }, new Map<number, typeof orders[0]>()).values()
+                          )
+                        : col
+                      ).map((order) => (
                         <KanbanCard
                           key={order.id}
                           order={order}
                           isNew={newOrderIds.has(order.id)}
                           config={cfg}
-                          onAdvance={cfg.next ? () => updateOrderStatus(order.id, cfg.next!) : undefined}
-                          onCancel={() => cancelOrder(order.id)}
+                          onAdvance={cfg.next ? () => {
+                            order.id.split(",").forEach(id => updateOrderStatus(id, cfg.next!))
+                          } : undefined}
+                          onCancel={() => {
+                            order.id.split(",").forEach(id => cancelOrder(id))
+                          }}
+                          onEdit={() => setEditingOrder(order)}
                         />
                       ))
                     )}
@@ -306,8 +334,27 @@ export function AdminClient() {
                 isNew={newOrderIds.has(order.id)}
                 onAdvance={STATUS_CONFIG[order.status].next ? () => updateOrderStatus(order.id, STATUS_CONFIG[order.status].next!) : undefined}
                 onCancel={() => cancelOrder(order.id)}
+                onEdit={() => setEditingOrder(order)}
               />
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── Order Editor Modal ── */}
+      {editingOrder && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="w-full max-w-md">
+            <OrderEditor
+              initialItems={editingOrder.items}
+              products={products}
+              categories={categories}
+              onSave={(items, total) => {
+                updateOrderItems(editingOrder.id, items, total);
+                setEditingOrder(null);
+              }}
+              onCancel={() => setEditingOrder(null)}
+            />
           </div>
         </div>
       )}
@@ -358,12 +405,14 @@ function KanbanCard({
   config,
   onAdvance,
   onCancel,
+  onEdit,
 }: {
   order: MockOrder;
   isNew: boolean;
   config: (typeof STATUS_CONFIG)[OrderStatus];
   onAdvance?: () => void;
   onCancel: () => void;
+  onEdit?: () => void;
 }) {
   const [expanded, setExpanded] = useState(isNew || order.status === "PENDING");
 
@@ -443,6 +492,15 @@ function KanbanCard({
                 {config.nextLabel}
               </button>
             )}
+            {onEdit && order.status !== "PAID" && order.status !== "CANCELLED" && (
+              <button
+                id={`edit-${order.id}`}
+                onClick={(e) => { e.stopPropagation(); onEdit(); }}
+                className="px-3 py-2 rounded-xl bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/20 transition-all text-xs font-bold"
+              >
+                Düzenle
+              </button>
+            )}
             {order.status !== "COMPLETED" && order.status !== "PAID" && (
               <button
                 id={`cancel-${order.id}`}
@@ -466,11 +524,13 @@ function ListRow({
   isNew,
   onAdvance,
   onCancel,
+  onEdit,
 }: {
   order: MockOrder;
   isNew: boolean;
   onAdvance?: () => void;
   onCancel: () => void;
+  onEdit?: () => void;
 }) {
   const cfg = STATUS_CONFIG[order.status];
   const Icon = cfg.icon;
@@ -521,6 +581,15 @@ function ListRow({
             )}
           >
             {cfg.nextLabel}
+          </button>
+        )}
+        {onEdit && order.status !== "PAID" && order.status !== "CANCELLED" && (
+          <button
+            id={`list-edit-${order.id}`}
+            onClick={onEdit}
+            className="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap bg-blue-500/15 border border-blue-500/30 text-blue-400 hover:bg-blue-500/25"
+          >
+            Düzenle
           </button>
         )}
         {order.status !== "COMPLETED" && order.status !== "PAID" && (
