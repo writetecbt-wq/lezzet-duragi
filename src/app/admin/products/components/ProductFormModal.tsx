@@ -1,9 +1,11 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { X, Upload, Check, AlertCircle, ImageOff } from "lucide-react";
+import { X, Upload, Check, AlertCircle, ImageOff, Loader2 } from "lucide-react";
 import { useProductStore, Product, PRODUCT_TAG_META, ProductTag } from "@/store/product.store";
 import { cn } from "@/lib/utils";
+import { storage } from "@/lib/firebase/config";
+import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 
 type Props = {
   product: Product | null; // null = add mode
@@ -39,6 +41,36 @@ function validate(data: FormData): FieldErrors {
   return errs;
 }
 
+function FieldWrapper({
+  label,
+  error,
+  isTouched,
+  required,
+  children,
+}: {
+  label: string;
+  error?: string;
+  isTouched?: boolean;
+  required?: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="space-y-1.5">
+      <label className="block text-xs font-semibold text-zinc-400">
+        {label}
+        {required && <span className="text-brand-500 ml-0.5">*</span>}
+      </label>
+      {children}
+      {error && isTouched && (
+        <p className="flex items-center gap-1 text-xs text-red-400">
+          <AlertCircle className="w-3 h-3 flex-shrink-0" />
+          {error}
+        </p>
+      )}
+    </div>
+  );
+}
+
 export function ProductFormModal({ product, onClose }: Props) {
   const { categories, addProduct, updateProduct } = useProductStore();
   const isEdit = product !== null;
@@ -58,7 +90,44 @@ export function ProductFormModal({ product, onClose }: Props) {
   const [imgPreview, setImgPreview] = useState(product?.imageUrl ?? "");
   const [imgLoadError, setImgLoadError] = useState(false);
   const [submitState, setSubmitState] = useState<"idle" | "success" | "error">("idle");
+  const [isUploading, setIsUploading] = useState(false);
   const previewTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    setImgLoadError(false);
+    
+    try {
+      const fileExtension = file.name.split('.').pop();
+      const fileName = `products/${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExtension}`;
+      const storageRef = ref(storage, fileName);
+      
+      const uploadTask = uploadBytesResumable(storageRef, file);
+      
+      uploadTask.on(
+        "state_changed",
+        (snapshot) => {},
+        (error) => {
+          console.error("Upload error:", error);
+          setErrors(prev => ({ ...prev, imageUrl: "Resim yüklenirken hata oluştu" }));
+          setIsUploading(false);
+        },
+        async () => {
+          const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+          handleChange("imageUrl", downloadURL);
+          setImgPreview(downloadURL);
+          setIsUploading(false);
+        }
+      );
+    } catch (err) {
+      console.error(err);
+      setIsUploading(false);
+    }
+  };
 
   // Debounced image preview
   useEffect(() => {
@@ -73,7 +142,11 @@ export function ProductFormModal({ product, onClose }: Props) {
   }, [form.imageUrl]);
 
   function touch(name: keyof FormData) {
-    setTouched((prev) => new Set([...prev, name]));
+    setTouched((prev) => {
+      const newSet = new Set(prev);
+      newSet.add(name);
+      return newSet;
+    });
   }
 
   function handleChange<K extends keyof FormData>(key: K, value: FormData[K]) {
@@ -115,37 +188,6 @@ export function ProductFormModal({ product, onClose }: Props) {
 
     setSubmitState("success");
     setTimeout(() => onClose(), 600);
-  }
-
-  // ─── Reusable field wrapper ─────────────────────────────────────────────
-  function FieldWrapper({
-    label,
-    name,
-    required,
-    children,
-  }: {
-    label: string;
-    name: keyof FormData;
-    required?: boolean;
-    children: React.ReactNode;
-  }) {
-    const err = errors[name];
-    const isTouched = touched.has(name);
-    return (
-      <div className="space-y-1.5">
-        <label className="block text-xs font-semibold text-zinc-400">
-          {label}
-          {required && <span className="text-brand-500 ml-0.5">*</span>}
-        </label>
-        {children}
-        {err && isTouched && (
-          <p className="flex items-center gap-1 text-xs text-red-400">
-            <AlertCircle className="w-3 h-3 flex-shrink-0" />
-            {err}
-          </p>
-        )}
-      </div>
-    );
   }
 
   function inputCls(name: keyof FormData) {
@@ -215,7 +257,7 @@ export function ProductFormModal({ product, onClose }: Props) {
                 {/* ── Left: Fields ── */}
                 <div className="flex-1 p-6 space-y-5">
                   {/* Name */}
-                  <FieldWrapper label="Ürün Adı" name="name" required>
+                  <FieldWrapper label="Ürün Adı" error={errors.name} isTouched={touched.has("name")} required>
                     <input
                       id="field-name"
                       type="text"
@@ -230,7 +272,7 @@ export function ProductFormModal({ product, onClose }: Props) {
                   </FieldWrapper>
 
                   {/* Description */}
-                  <FieldWrapper label="Açıklama" name="description">
+                  <FieldWrapper label="Açıklama" error={errors.description} isTouched={touched.has("description")}>
                     <textarea
                       id="field-description"
                       value={form.description}
@@ -248,7 +290,7 @@ export function ProductFormModal({ product, onClose }: Props) {
 
                   {/* Price + Category */}
                   <div className="grid grid-cols-2 gap-3">
-                    <FieldWrapper label="Fiyat (₺)" name="price" required>
+                    <FieldWrapper label="Fiyat (₺)" error={errors.price} isTouched={touched.has("price")} required>
                       <div className="relative">
                         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 font-bold text-sm pointer-events-none">
                           ₺
@@ -267,7 +309,7 @@ export function ProductFormModal({ product, onClose }: Props) {
                       </div>
                     </FieldWrapper>
 
-                    <FieldWrapper label="Kategori" name="categoryId" required>
+                    <FieldWrapper label="Kategori" error={errors.categoryId} isTouched={touched.has("categoryId")} required>
                       <select
                         id="field-category"
                         value={form.categoryId}
@@ -284,23 +326,40 @@ export function ProductFormModal({ product, onClose }: Props) {
                     </FieldWrapper>
                   </div>
 
-                  {/* Image URL */}
-                  <FieldWrapper label="Görsel URL" name="imageUrl">
-                    <div className="relative">
-                      <Upload className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-600 pointer-events-none" />
+                  {/* Image Upload */}
+                  <FieldWrapper label="Görsel (Bilgisayardan seçin veya URL girin)" error={errors.imageUrl} isTouched={touched.has("imageUrl")}>
+                    <div className="flex items-center gap-3">
+                      <label
+                        className={cn(
+                          "relative flex items-center justify-center gap-2 px-4 py-2.5 bg-white/5 border rounded-xl text-sm font-semibold transition-all cursor-pointer overflow-hidden",
+                          isUploading ? "opacity-50 pointer-events-none" : "hover:bg-white/10 border-white/10"
+                        )}
+                      >
+                        {isUploading ? (
+                          <Loader2 className="w-4 h-4 text-brand-500 animate-spin" />
+                        ) : (
+                          <Upload className="w-4 h-4 text-zinc-400" />
+                        )}
+                        <span className="text-zinc-200 whitespace-nowrap">
+                          {isUploading ? "Yükleniyor..." : "Dosya Seç"}
+                        </span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                          onChange={handleImageUpload}
+                        />
+                      </label>
                       <input
                         id="field-image"
                         type="url"
                         value={form.imageUrl}
                         onChange={(e) => handleChange("imageUrl", e.target.value)}
                         onBlur={() => touch("imageUrl")}
-                        placeholder="https://images.unsplash.com/photo-..."
-                        className={cn(inputCls("imageUrl"), "pl-9")}
+                        placeholder="veya resim URL'si yapıştırın"
+                        className={cn(inputCls("imageUrl"), "flex-1 min-w-0")}
                       />
                     </div>
-                    <p className="text-[11px] text-zinc-600">
-                      Unsplash, CDN veya başka bir görsel URL&apos;i kullanabilirsiniz
-                    </p>
                   </FieldWrapper>
 
                   {/* Availability */}
@@ -352,19 +411,22 @@ export function ProductFormModal({ product, onClose }: Props) {
                           <p className="text-[10px] font-bold text-zinc-600 uppercase tracking-wider mb-1.5">{title}</p>
                           <div className="flex flex-wrap gap-1.5">
                             {tagsOfType.map(([tag, meta]) => {
-                              const active = form.tags.includes(tag);
+                              const safeTags = form.tags || [];
+                              const active = safeTags.includes(tag);
                               return (
                                 <button
                                   key={tag}
                                   type="button"
-                                  onClick={() =>
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    const currentTags = form.tags || [];
                                     handleChange(
                                       "tags",
                                       active
-                                        ? form.tags.filter((t) => t !== tag)
-                                        : [...form.tags, tag]
-                                    )
-                                  }
+                                        ? currentTags.filter((t) => t !== tag)
+                                        : [...currentTags, tag]
+                                    );
+                                  }}
                                   className={cn(
                                     "inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-1 rounded-full border transition-all",
                                     active

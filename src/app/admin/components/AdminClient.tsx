@@ -11,6 +11,8 @@ import {
   ChevronDown,
   ChevronUp,
   Clock,
+  Bike,
+  MapPin,
 } from "lucide-react";
 import {
   MockOrder,
@@ -66,6 +68,26 @@ const STATUS_CONFIG: Record<
     bgDark: "bg-green-500/10",
     borderColor: "border-green-500/25",
     headerGlow: "shadow-green-500/20",
+    icon: CheckCircle2,
+    next: "PAID",
+    nextLabel: "Ödendi İşaretle",
+  },
+  ON_THE_WAY: {
+    label: "Yola Çıktı",
+    color: "text-purple-400",
+    bgDark: "bg-purple-500/10",
+    borderColor: "border-purple-500/25",
+    headerGlow: "shadow-purple-500/20",
+    icon: Bike,
+    next: "DELIVERED",
+    nextLabel: "Teslim Edildi",
+  },
+  DELIVERED: {
+    label: "Teslim Edildi",
+    color: "text-teal-400",
+    bgDark: "bg-teal-500/10",
+    borderColor: "border-teal-500/25",
+    headerGlow: "shadow-teal-500/20",
     icon: CheckCircle2,
     next: "PAID",
     nextLabel: "Ödendi İşaretle",
@@ -129,7 +151,7 @@ function generateMockOrder(): MockOrder {
 // ─── Main Component ────────────────────────────────────────────────────────
 
 export function AdminClient() {
-  const { orders, cancelOrder, updateOrderStatus, updateOrderItems, placeOrder } = useOrderStore();
+  const { orders, cancelOrder, updateOrderStatus, updateOrderItems, placeOrder, assignCourier } = useOrderStore();
   const { products, categories } = useProductStore();
   const [notification, setNotification] = useState<{ msg: string; key: number } | null>(null);
   const [newOrderIds, setNewOrderIds] = useState<Set<string>>(new Set());
@@ -186,9 +208,9 @@ export function AdminClient() {
   const pending = orders.filter((o) => o.status === "PENDING").length;
   const preparing = orders.filter((o) => o.status === "PREPARING").length;
   const completed = orders.filter((o) => o.status === "COMPLETED").length;
-  const revenue = orders.filter((o) => o.status === "COMPLETED" || o.status === "PAID").reduce((s, o) => s + o.totalAmount, 0);
+  const revenue = orders.filter((o) => o.status === "COMPLETED" || o.status === "DELIVERED" || o.status === "PAID").reduce((s, o) => s + o.totalAmount, 0);
 
-  const COLUMNS: OrderStatus[] = ["PENDING", "PREPARING", "COMPLETED"];
+  const COLUMNS: OrderStatus[] = ["PENDING", "PREPARING", "ON_THE_WAY", "COMPLETED"];
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden min-w-0">
@@ -244,14 +266,27 @@ export function AdminClient() {
             ))}
           </div>
 
-          <button
-            id="add-mock-order-btn"
-            onClick={addSimulatedOrder}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-brand-500/15 border border-brand-500/30 text-brand-400 hover:bg-brand-500/25 text-xs font-semibold transition-all"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Sipariş Simüle Et</span>
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={addSimulatedOrder}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-brand-500/15 border border-brand-500/30 text-brand-400 hover:bg-brand-500/25 text-xs font-semibold transition-all"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Masa Siparişi</span>
+            </button>
+            <button
+              onClick={() => useOrderStore.getState().simulateExternalOrder("YEMEKSEPETI")}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-red-500/15 border border-red-500/30 text-red-400 hover:bg-red-500/25 text-xs font-semibold transition-all"
+            >
+              <span className="hidden sm:inline">Yemeksepeti</span>
+            </button>
+            <button
+              onClick={() => useOrderStore.getState().simulateExternalOrder("GETIR")}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-purple-500/15 border border-purple-500/30 text-purple-400 hover:bg-purple-500/25 text-xs font-semibold transition-all"
+            >
+              <span className="hidden sm:inline">Getir</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -309,7 +344,16 @@ export function AdminClient() {
                           isNew={newOrderIds.has(order.id)}
                           config={cfg}
                           onAdvance={cfg.next ? () => {
-                            order.id.split(",").forEach(id => updateOrderStatus(id, cfg.next!))
+                            order.id.split(",").forEach(id => {
+                              // Custom routing for delivery
+                              if (status === "PREPARING" && order.source && order.source !== "DINE_IN") {
+                                assignCourier(id, "Bölge Kuryesi");
+                              } else if (status === "ON_THE_WAY") {
+                                updateOrderStatus(id, "DELIVERED");
+                              } else {
+                                updateOrderStatus(id, cfg.next!);
+                              }
+                            });
                           } : undefined}
                           onCancel={() => {
                             order.id.split(",").forEach(id => cancelOrder(id))
@@ -407,7 +451,7 @@ function KanbanCard({
   onCancel,
   onEdit,
 }: {
-  order: MockOrder;
+  order: FirestoreOrder;
   isNew: boolean;
   config: (typeof STATUS_CONFIG)[OrderStatus];
   onAdvance?: () => void;
@@ -428,12 +472,20 @@ function KanbanCard({
         className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-white/3 transition-colors"
         onClick={() => setExpanded((v) => !v)}
       >
-        <div className="w-9 h-9 rounded-xl bg-white/8 flex items-center justify-center font-bold text-base text-white flex-shrink-0">
-          {order.tableNumber}
-        </div>
+        {order.source === "YEMEKSEPETI" ? (
+          <div className="w-9 h-9 rounded-xl bg-red-500/20 text-red-500 flex items-center justify-center font-bold text-xs flex-shrink-0">YS</div>
+        ) : order.source === "GETIR" ? (
+          <div className="w-9 h-9 rounded-xl bg-purple-500/20 text-purple-400 flex items-center justify-center font-bold text-xs flex-shrink-0">GT</div>
+        ) : (
+          <div className="w-9 h-9 rounded-xl bg-white/8 flex items-center justify-center font-bold text-base text-white flex-shrink-0">
+            {order.tableNumber}
+          </div>
+        )}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <p className="text-sm font-semibold text-white">Masa {order.tableNumber}</p>
+            <p className="text-sm font-semibold text-white">
+              {order.source === "YEMEKSEPETI" ? "Yemeksepeti" : order.source === "GETIR" ? "Getir" : `Masa ${order.tableNumber}`}
+            </p>
             {isNew && (
               <span className="text-[9px] bg-amber-500 text-white px-1.5 py-0.5 rounded-full font-bold leading-none">YENİ</span>
             )}
@@ -476,6 +528,22 @@ function KanbanCard({
             <div className="mt-1 mb-3 px-3 py-2 bg-amber-500/8 rounded-lg border border-amber-500/20">
               <p className="text-[10px] text-amber-400 font-semibold mb-0.5">Not</p>
               <p className="text-xs text-amber-200/80">{order.notes}</p>
+            </div>
+          )}
+
+          {order.customerInfo && (
+            <div className="mt-1 mb-3 px-3 py-2 bg-blue-500/8 rounded-lg border border-blue-500/20 flex flex-col gap-1">
+              <p className="text-[10px] text-blue-400 font-semibold flex items-center gap-1"><MapPin className="w-3 h-3"/> Müşteri Bilgileri</p>
+              <p className="text-xs text-blue-100/80 font-medium">{order.customerInfo.name}</p>
+              <p className="text-[11px] text-blue-200/60 leading-tight">{order.customerInfo.address}</p>
+              <p className="text-[11px] text-blue-200/60">{order.customerInfo.phone}</p>
+            </div>
+          )}
+
+          {order.courierName && (
+            <div className="mt-1 mb-3 px-3 py-2 bg-purple-500/8 rounded-lg border border-purple-500/20 flex flex-col gap-1">
+              <p className="text-[10px] text-purple-400 font-semibold flex items-center gap-1"><Bike className="w-3 h-3"/> Kurye</p>
+              <p className="text-xs text-purple-100/80 font-medium">{order.courierName}</p>
             </div>
           )}
 
@@ -526,7 +594,7 @@ function ListRow({
   onCancel,
   onEdit,
 }: {
-  order: MockOrder;
+  order: FirestoreOrder;
   isNew: boolean;
   onAdvance?: () => void;
   onCancel: () => void;
@@ -541,12 +609,20 @@ function ListRow({
       isNew ? "border-amber-500/50 animate-scale-in" : "border-white/8"
     )}>
       <div className="w-10 h-10 rounded-xl bg-white/8 flex items-center justify-center font-bold text-sm text-white flex-shrink-0">
-        {order.tableNumber}
+        {order.source === "YEMEKSEPETI" ? (
+          <span className="text-red-500 text-xs">YS</span>
+        ) : order.source === "GETIR" ? (
+          <span className="text-purple-400 text-xs">GT</span>
+        ) : (
+          order.tableNumber
+        )}
       </div>
 
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-sm font-semibold text-white">Masa {order.tableNumber}</span>
+          <span className="text-sm font-semibold text-white">
+            {order.source === "YEMEKSEPETI" ? "Yemeksepeti" : order.source === "GETIR" ? "Getir" : `Masa ${order.tableNumber}`}
+          </span>
           {isNew && <span className="text-[9px] bg-amber-500 text-white px-1.5 py-0.5 rounded-full font-bold">YENİ</span>}
         </div>
         <p className="text-xs text-zinc-500 truncate mt-0.5">

@@ -1,0 +1,17 @@
+
+> intelligent-lovelace@0.1.0 dev
+> next dev
+
+▲ Next.js 16.2.10 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.1.183:3000
+✓ Ready in 599ms
+⨯ Another next dev server is already running.
+
+- Local:        http://localhost:3000
+- PID:          10650
+- Dir:          /Users/aly/Documents/antigravity/intelligent-lovelace
+- Log:          .next/dev/logs/next-development.log
+
+Run kill 10650 to stop it.
+[?25h

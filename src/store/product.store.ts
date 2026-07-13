@@ -41,6 +41,13 @@ export type Product = {
   sortOrder: number;
   categoryId: string;
   tags: ProductTag[];
+  nutrition?: {
+    calories: number;
+    protein: number;
+    fat: number;
+    carbs: number;
+  };
+  ingredients?: { name: string; amount?: string }[];
 };
 
 export type Category = {

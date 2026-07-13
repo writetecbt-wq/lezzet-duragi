@@ -2,10 +2,15 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Package, ExternalLink, Map, BarChart3, QrCode, LogOut } from "lucide-react";
+import { LayoutDashboard, Package, ExternalLink, Map, BarChart3, Wallet, LogOut, Plug } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
+  {
+    href: "/admin/dashboard",
+    label: "Ana Pano",
+    icon: BarChart3,
+  },
   {
     href: "/admin",
     label: "Siparişler",
@@ -17,19 +22,19 @@ const NAV_ITEMS = [
     icon: Map,
   },
   {
-    href: "/admin/reports",
-    label: "Raporlar",
-    icon: BarChart3,
-  },
-  {
-    href: "/admin/qrcodes",
-    label: "QR Kodlar",
-    icon: QrCode,
+    href: "/admin/kasa",
+    label: "Kasa & Muhasebe",
+    icon: Wallet,
   },
   {
     href: "/admin/products",
     label: "Ürün Yönetimi",
     icon: Package,
+  },
+  {
+    href: "/admin/integrations",
+    label: "Entegrasyonlar",
+    icon: Plug,
   },
 ];
 

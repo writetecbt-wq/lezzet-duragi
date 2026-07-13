@@ -45,7 +45,9 @@ export function KitchenClient() {
         <div key={tableNum} className="flex-shrink-0 w-80 flex flex-col bg-[#1c1c22] border border-white/5 rounded-2xl overflow-hidden snap-start shadow-2xl">
           {/* Sütun Başlığı */}
           <div className="bg-white/5 border-b border-white/5 p-4 flex items-center justify-between">
-            <h2 className="text-3xl font-black text-white">Masa {tableNum}</h2>
+            <h2 className="text-3xl font-black text-white">
+              {tableNum === 0 ? "Paket Servis" : `Masa ${tableNum}`}
+            </h2>
             <div className="text-sm font-bold text-zinc-400 bg-black/40 px-3 py-1 rounded-full">
               {tableOrders.length} Sipariş
             </div>
@@ -60,9 +62,31 @@ export function KitchenClient() {
                   "border rounded-xl p-4 flex flex-col shadow-lg transition-all",
                   order.status === "PENDING"
                     ? "bg-amber-500/10 border-amber-500/30"
-                    : "bg-blue-500/10 border-blue-500/30"
+                    : "bg-blue-500/10 border-blue-500/30",
+                  order.source === "GETIR" && "border-l-4 border-l-[#5d3ebd] bg-[#5d3ebd]/5",
+                  order.source === "YEMEKSEPETI" && "border-l-4 border-l-[#ea004b] bg-[#ea004b]/5",
+                  order.source === "TRENDYOL" && "border-l-4 border-l-[#f27a1a] bg-[#f27a1a]/5",
+                  order.source === "MIGROS" && "border-l-4 border-l-[#ff8300] bg-[#ff8300]/5" // Migros Yemek uses orange too
                 )}
               >
+                {/* Delivery Info */}
+                {tableNum === 0 && order.source && order.source !== "DINE_IN" && (
+                  <div className="flex items-center justify-between mb-3">
+                    <span className={cn(
+                      "text-xs font-black px-2 py-1 rounded-md text-white",
+                      order.source === "GETIR" ? "bg-[#5d3ebd]" :
+                      order.source === "YEMEKSEPETI" ? "bg-[#ea004b]" :
+                      order.source === "TRENDYOL" ? "bg-[#f27a1a]" :
+                      "bg-[#ff8300]"
+                    )}>
+                      {order.source}
+                    </span>
+                    <span className="text-xs font-bold text-zinc-400 truncate max-w-[120px]">
+                      {order.customerInfo?.name}
+                    </span>
+                  </div>
+                )}
+
                 {/* Header */}
                 <div className="flex items-center justify-between mb-3 border-b border-white/10 pb-3">
                   <span className={cn(
@@ -99,29 +123,40 @@ export function KitchenClient() {
 
                 {/* Actions */}
                 <div className="flex gap-2">
-                  {order.status === "PENDING" ? (
+                  {order.status === "PENDING" && tableNum !== 0 ? (
                     <div className="w-full py-3 rounded-xl font-bold text-sm bg-black/20 text-zinc-500 flex items-center justify-center border border-white/5">
                       Garson Onayı Bekleniyor...
                     </div>
+                  ) : order.status === "PENDING" && tableNum === 0 ? (
+                    <button
+                      onClick={() => {
+                        updateOrderStatus(order.id, "PREPARING");
+                      }}
+                      className="w-full py-3 rounded-xl font-black text-sm transition-all flex items-center justify-center gap-2 bg-amber-500 hover:bg-amber-400 text-amber-950 shadow-xl btn-press"
+                    >
+                      Hazırlamaya Başla
+                    </button>
                   ) : (
                     <>
+                      {tableNum !== 0 && (
+                        <button
+                          onClick={() => {
+                            useOrderStore.getState().requestService(order.tableNumber, "WAITER");
+                            alert("Garson çağrıldı!");
+                          }}
+                          className="flex-1 py-3 rounded-xl font-black text-sm transition-all flex items-center justify-center gap-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 shadow-xl btn-press"
+                        >
+                          Garson
+                        </button>
+                      )}
                       <button
                         onClick={() => {
-                          useOrderStore.getState().requestService(order.tableNumber, "WAITER");
-                          alert("Garson çağrıldı!");
-                        }}
-                        className="flex-1 py-3 rounded-xl font-black text-sm transition-all flex items-center justify-center gap-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 shadow-xl btn-press"
-                      >
-                        Garson Çağır
-                      </button>
-                      <button
-                        onClick={() => {
-                          updateOrderStatus(order.id, "COMPLETED");
+                          updateOrderStatus(order.id, tableNum === 0 ? "ON_THE_WAY" : "COMPLETED");
                         }}
                         className="flex-[2] py-3 rounded-xl font-black text-sm transition-all flex items-center justify-center gap-2 bg-blue-500 hover:bg-blue-400 text-blue-950 shadow-blue-900/20 shadow-xl btn-press"
                       >
                         <CheckCircle2 className="w-5 h-5" />
-                        Hazır (Çıkış)
+                        {tableNum === 0 ? "Kuryeye Teslim Et" : "Hazır (Çıkış)"}
                       </button>
                     </>
                   )}

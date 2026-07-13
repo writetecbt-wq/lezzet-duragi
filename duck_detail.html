@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+
+<html class="light" lang="tr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-surface": "#1b1b1d",
+                        "on-primary-fixed-variant": "#454747",
+                        "on-tertiary-fixed-variant": "#454749",
+                        "on-secondary": "#ffffff",
+                        "error": "#ba1a1a",
+                        "tertiary": "#5d5e60",
+                        "secondary-fixed": "#ffdea5",
+                        "on-primary-fixed": "#1a1c1c",
+                        "on-background": "#1b1b1d",
+                        "tertiary-container": "#ffffff",
+                        "on-error": "#ffffff",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-container": "#f0edef",
+                        "secondary-container": "#fed488",
+                        "on-tertiary-container": "#747678",
+                        "tertiary-fixed-dim": "#c6c6c8",
+                        "on-tertiary": "#ffffff",
+                        "surface-container-highest": "#e4e2e4",
+                        "outline-variant": "#c4c7c8",
+                        "inverse-on-surface": "#f3f0f2",
+                        "primary-fixed": "#e2e2e2",
+                        "on-surface-variant": "#444748",
+                        "surface-dim": "#dcd9dc",
+                        "secondary-fixed-dim": "#e9c176",
+                        "primary-fixed-dim": "#c6c6c7",
+                        "tertiary-fixed": "#e2e2e4",
+                        "on-primary-container": "#747676",
+                        "on-primary": "#ffffff",
+                        "secondary": "#775a19",
+                        "primary": "#5d5f5f",
+                        "surface-variant": "#e4e2e4",
+                        "surface": "#fcf8fb",
+                        "outline": "#747878",
+                        "on-error-container": "#93000a",
+                        "surface-container-low": "#f6f3f5",
+                        "background": "#fcf8fb",
+                        "surface-container-high": "#eae7ea",
+                        "on-secondary-container": "#785a1a",
+                        "inverse-surface": "#303032",
+                        "inverse-primary": "#c6c6c7",
+                        "error-container": "#ffdad6",
+                        "on-secondary-fixed-variant": "#5d4201",
+                        "surface-bright": "#fcf8fb",
+                        "primary-container": "#ffffff",
+                        "on-secondary-fixed": "#261900",
+                        "surface-tint": "#5d5f5f",
+                        "on-tertiary-fixed": "#1a1c1d",
+                        "accent-gold": "#C5A059"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "1rem",
+                        "lg": "2rem",
+                        "xl": "3rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "container-margin": "20px",
+                        "stack-gap-lg": "32px",
+                        "section-padding": "48px",
+                        "stack-gap-sm": "8px",
+                        "stack-gap-md": "16px"
+                    },
+                    "fontFamily": {
+                        "headline-md": ["Inter"],
+                        "body-md": ["Inter"],
+                        "label-caps": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "headline-lg-mobile": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "display": ["Inter"],
+                        "price-lg": ["Inter"]
+                    },
+                    "fontSize": {
+                        "headline-md": ["20px", {"lineHeight": "25px", "letterSpacing": "-0.005em", "fontWeight": "600"}],
+                        "body-md": ["15px", {"lineHeight": "20px", "letterSpacing": "0em", "fontWeight": "400"}],
+                        "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "body-lg": ["17px", {"lineHeight": "24px", "letterSpacing": "-0.01em", "fontWeight": "400"}],
+                        "headline-lg-mobile": ["22px", {"lineHeight": "28px", "fontWeight": "600"}],
+                        "headline-lg": ["24px", {"lineHeight": "30px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "display": ["34px", {"lineHeight": "41px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "price-lg": ["20px", {"lineHeight": "24px", "letterSpacing": "0em", "fontWeight": "500"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24; }
+        .fill-icon { font-variation-settings: 'FILL' 1; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface">
+<!-- Top Navigation -->
+<nav class="fixed top-0 w-full z-50 bg-surface/80 backdrop-blur-xl shadow-sm flex items-center justify-between px-container-margin h-16">
+<button class="active:scale-95 duration-200 hover:opacity-70 transition-opacity">
+<span class="material-symbols-outlined text-primary">arrow_back_ios_new</span>
+</button>
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile font-bold tracking-widest text-primary uppercase">EPICUREAN</h1>
+<button class="active:scale-95 duration-200 hover:opacity-70 transition-opacity">
+<span class="material-symbols-outlined text-primary">shopping_bag</span>
+</button>
+</nav>
+<main class="pb-32">
+<!-- Hero Image Section -->
+<div class="relative w-full h-[397px] overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Exquisite close-up of a perfectly sliced duck breast with a glossy honey and orange glaze. The duck is arranged artistically over a smooth, creamy bed of orange-colored sweet potato puree, accented with vibrant red cherry sauce droplets and fresh micro-greens. The lighting is soft and cinematic, highlighting the rich textures and premium quality of the ingredients in a clean, minimalist setting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCEA7rDdRqPpwnqDXFY3n2PthweUjb8ItGz9Rh68jI63zbaptrc3P9kd12_n3m27PNnF-3J6toBu-gb1s6nuJeQqajN4Huirq9o9aC904CKMXx6X_lxrZsTqTscb4huWKeaG178CqjLIHeclTw8vXckM2vaunOKyqHe7gXB_7_43C0eNUu3MYCBHqYT_oZDaKrWfiQJtuy_0Bwpk0dc1fC7O9AUhBKYOuUUch_aRyiFAE_tvmUdfelctSD8FCTEDYf4LewXFf7nnwI"/>
+<div class="absolute inset-0 bg-gradient-to-t from-background/40 to-transparent"></div>
+</div>
+<!-- Content Canvas -->
+<div class="px-container-margin -mt-8 relative z-10">
+<div class="bg-white rounded-lg p-6 shadow-sm border border-outline-variant/20">
+<div class="flex justify-between items-start mb-4">
+<h2 class="font-display text-display text-on-surface leading-tight">Ballı Ördek Göğsü</h2>
+<span class="font-price-lg text-price-lg text-accent-gold mt-2">910 TL</span>
+</div>
+<p class="font-body-lg text-body-lg text-on-surface-variant mb-8 leading-relaxed">
+                    Portakal ve bal marinasyonu ile fırınlanmış ördek göğsü, vişne sosu ve tatlı patates püresi ile.
+                </p>
+<!-- Nutritional Stats Bento Grid -->
+<div class="grid grid-cols-2 gap-3 mb-8">
+<div class="bg-surface-container-low p-4 rounded-xl flex flex-col justify-between">
+<span class="font-label-caps text-label-caps text-on-tertiary-container uppercase">Enerji</span>
+<span class="font-headline-md text-headline-md mt-1">810 kcal</span>
+</div>
+<div class="bg-surface-container-low p-4 rounded-xl flex flex-col justify-between">
+<span class="font-label-caps text-label-caps text-on-tertiary-container uppercase">Protein</span>
+<span class="font-headline-md text-headline-md mt-1">38g</span>
+</div>
+<div class="bg-surface-container-low p-4 rounded-xl flex flex-col justify-between">
+<span class="font-label-caps text-label-caps text-on-tertiary-container uppercase">Yağ</span>
+<span class="font-headline-md text-headline-md mt-1">42g</span>
+</div>
+<div class="bg-surface-container-low p-4 rounded-xl flex flex-col justify-between">
+<span class="font-label-caps text-label-caps text-on-tertiary-container uppercase">Karbonhidrat</span>
+<span class="font-headline-md text-headline-md mt-1">22g</span>
+</div>
+</div>
+<!-- Customization Sections -->
+<div class="space-y-8">
+<!-- Doneness -->
+<section>
+<div class="flex items-center justify-between mb-4">
+<h3 class="font-headline-md text-headline-md text-on-surface">Pişme Derecesi</h3>
+<span class="font-label-caps text-label-caps bg-secondary-container/30 text-secondary px-3 py-1 rounded-full uppercase">Zorunlu</span>
+</div>
+<div class="space-y-3">
+<label class="flex items-center justify-between p-4 bg-surface-container-lowest border border-outline-variant/30 rounded-xl cursor-pointer active:bg-surface-container transition-colors">
+<span class="font-body-md text-body-md">Az Pişmiş</span>
+<input checked="" class="w-5 h-5 text-accent-gold border-outline focus:ring-accent-gold" name="doneness" type="radio"/>
+</label>
+<label class="flex items-center justify-between p-4 bg-surface-container-lowest border border-outline-variant/30 rounded-xl cursor-pointer active:bg-surface-container transition-colors">
+<span class="font-body-md text-body-md">Orta Pişmiş</span>
+<input class="w-5 h-5 text-accent-gold border-outline focus:ring-accent-gold" name="doneness" type="radio"/>
+</label>
+<label class="flex items-center justify-between p-4 bg-surface-container-lowest border border-outline-variant/30 rounded-xl cursor-pointer active:bg-surface-container transition-colors">
+<span class="font-body-md text-body-md">Çok Pişmiş</span>
+<input class="w-5 h-5 text-accent-gold border-outline focus:ring-accent-gold" name="doneness" type="radio"/>
+</label>
+</div>
+</section>
+<!-- Allergy Info -->
+<section>
+<button class="w-full flex items-center justify-between p-5 bg-surface-container border border-outline-variant/30 rounded-xl active:scale-[0.98] transition-transform">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-accent-gold">info</span>
+<span class="font-headline-md text-headline-md">Alerji Bilgisi</span>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant">chevron_right</span>
+</button>
+</section>
+</div>
+</div>
+</div>
+</main>
+<!-- Fixed Bottom CTA -->
+<footer class="fixed bottom-0 left-0 w-full bg-surface/90 backdrop-blur-xl px-container-margin pt-4 pb-8 border-t border-outline-variant/20 z-50">
+<div class="flex items-center gap-4">
+<!-- Quantity Selector -->
+<div class="flex items-center bg-surface-container-high rounded-full px-4 py-2 h-[56px]">
+<button class="w-8 h-8 flex items-center justify-center text-on-surface active:opacity-50" onclick="decrement()">
+<span class="material-symbols-outlined text-[20px]">remove</span>
+</button>
+<span class="w-10 text-center font-headline-md text-headline-md" id="qty">1</span>
+<button class="w-8 h-8 flex items-center justify-center text-on-surface active:opacity-50" onclick="increment()">
+<span class="material-symbols-outlined text-[20px]">add</span>
+</button>
+</div>
+<!-- Add to Cart Button -->
+<button class="flex-1 bg-accent-gold text-white font-headline-md text-headline-md py-4 rounded-full shadow-lg shadow-accent-gold/20 active:scale-95 transition-all duration-200">
+                Sepete Ekle
+            </button>
+</div>
+</footer>
+<script>
+        let quantity = 1;
+        function increment() {
+            quantity++;
+            document.getElementById('qty').innerText = quantity;
+        }
+        function decrement() {
+            if (quantity > 1) {
+                quantity--;
+                document.getElementById('qty').innerText = quantity;
+            }
+        }
+
+        // Simple scroll effect for header
+        window.onscroll = function() {
+            const nav = document.querySelector('nav');
+            if (window.pageYOffset > 50) {
+                nav.classList.add('shadow-md');
+            } else {
+                nav.classList.remove('shadow-md');
+            }
+        };
+    </script>
+</body></html>

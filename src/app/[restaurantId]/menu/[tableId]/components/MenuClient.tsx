@@ -7,14 +7,17 @@ import {
   Plus,
   AlertTriangle,
   CheckCircle2,
+  Menu as MenuIcon
 } from "lucide-react";
 import { useCartStore } from "@/store/cart.store";
-import { useProductStore, PRODUCT_TAG_META } from "@/store/product.store";
+import { useProductStore } from "@/store/product.store";
 import { useTableStore } from "@/store/table.store";
 import { useOrderStore } from "@/store/order.store";
 import { formatPrice, MOCK_CATEGORIES } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
 import { CustomerOrderWidget } from "./CustomerOrderWidget";
+import { ProductDetailModal } from "./ProductDetailModal";
+import { Product } from "@/store/product.store";
 
 type MenuClientProps = {
   tableNumber: string;
@@ -23,6 +26,7 @@ type MenuClientProps = {
 export function MenuClient({ tableNumber }: MenuClientProps) {
   const [activeCategory, setActiveCategory] = useState(MOCK_CATEGORIES[0].id);
   const [isMounted, setIsMounted] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
   const { products, fetchProductsAndCategories, categories, isLoading } = useProductStore();
   const { listenToOrders, orders } = useOrderStore();
@@ -61,48 +65,64 @@ export function MenuClient({ tableNumber }: MenuClientProps) {
     });
   };
 
-  // Filter products by active category
   const activeProducts = products.filter((p) => p.categoryId === activeCategory);
-  
-  // Try to find category from Firebase first, fallback to mock if loading
   const activeCategoryData = categories.find((c) => c.id === activeCategory) || MOCK_CATEGORIES.find((c) => c.id === activeCategory);
 
   const cartCount = isMounted ? totalItems() : 0;
   const currentTotal = isMounted ? totalPrice() : 0;
 
-  // Decide layout based on category: Yiyecekler uses Horizontal cards, others use Grid
-  const isGridStyle = activeCategory === "cat_icecek_001" || activeCategory === "cat_tatli_001";
-  
   return (
-    <div className="flex flex-col min-h-dvh bg-background text-on-surface font-sans pb-32">
-      {/* ── Sticky Header Container ── */}
-      <div className="sticky top-0 z-50 flex flex-col w-full shadow-sm">
-        {/* ── TopAppBar ── */}
-        <header className="glass-crystal border-b border-outline/30 flex justify-between items-center px-6 py-5">
-          <div className="flex flex-col items-center mx-auto text-center">
-            <h1 className="font-serif text-2xl tracking-widest uppercase text-on-surface">L'Essence</h1>
-            <div className="flex items-center gap-2 mt-1">
-              <span className="w-1 h-1 bg-primary rounded-full"></span>
-              <span className="font-label-caps text-[10px] tracking-[0.2em] uppercase text-on-surface-variant font-sans">
-                Table {tableNumber.padStart(2, "0")} • Salon Privé
-              </span>
-            </div>
-          </div>
-          <button onClick={openCart} className="absolute right-6 p-2 text-on-surface/80 hover:text-primary transition-colors">
+    <div className="flex flex-col min-h-dvh bg-background text-on-surface font-body-md overflow-x-hidden pb-32">
+      {/* ── TopAppBar ── */}
+      <header className="fixed top-0 left-0 right-0 z-50 glass-crystal flex justify-between items-center px-container-margin py-6 w-full shadow-[0_4px_30px_rgba(0,0,0,0.03)] border-b border-surface-container-high/50">
+        <div className="flex items-center gap-6">
+          <button className="hover:opacity-80 transition-opacity active:scale-95 transition-transform duration-200 lg:hidden text-primary">
+            <MenuIcon className="w-6 h-6" />
+          </button>
+          <h1 className="font-display text-2xl md:text-3xl tracking-[0.2em] text-primary uppercase select-none">Epicurean</h1>
+        </div>
+        <div className="hidden md:flex items-center gap-10">
+          <nav className="flex items-center gap-8">
+            <ServiceRequestButton tableNumber={tableNum} type="WAITER" />
+            <ServiceRequestButton tableNumber={tableNum} type="BILL" />
+          </nav>
+          <div className="h-4 w-[1px] bg-outline-variant/30"></div>
+          <button onClick={openCart} className="hover:opacity-80 transition-opacity flex items-center gap-2 group">
             <div className="relative">
-              <ShoppingBag className="font-light text-[24px] w-6 h-6" strokeWidth={1.5} />
+              <ShoppingBag className="text-primary w-6 h-6 group-hover:scale-105 transition-transform" />
               {cartCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-primary text-white text-[9px] w-3.5 h-3.5 flex items-center justify-center rounded-full font-bold">
+                <span className="absolute -top-2 -right-2 bg-secondary text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold">
                   {cartCount}
                 </span>
               )}
             </div>
+            <span className="font-label-caps text-xs tracking-widest text-primary hidden lg:inline-block">({cartCount})</span>
           </button>
-        </header>
+        </div>
+        {/* Mobile Cart Icon */}
+        <button onClick={openCart} className="md:hidden hover:opacity-80 transition-opacity flex items-center gap-2">
+            <div className="relative">
+              <ShoppingBag className="text-primary w-6 h-6" />
+              {cartCount > 0 && (
+                <span className="absolute -top-2 -right-2 bg-secondary text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold shadow-md">
+                  {cartCount}
+                </span>
+              )}
+            </div>
+        </button>
+      </header>
+
+      {/* ── Main Content ── */}
+      <main className="pt-32 pb-24 max-w-[1400px] mx-auto px-container-margin w-full">
+        
+        <div className="md:hidden flex gap-4 w-full mb-8 animate-fade-in-up">
+          <ServiceRequestButton tableNumber={tableNum} type="WAITER" />
+          <ServiceRequestButton tableNumber={tableNum} type="BILL" />
+        </div>
 
         {/* ── Category Nav ── */}
-        <div className="bg-background/95 py-5 border-b border-outline/20">
-          <div className="flex overflow-x-auto hide-scrollbar px-6 gap-8 justify-start md:justify-center">
+        <section className="mb-stack-gap-lg overflow-x-auto hide-scrollbar">
+          <div className="flex items-center justify-start md:justify-center gap-4 py-4 min-w-max">
             {(categories.length > 0 ? categories : MOCK_CATEGORIES).map((cat) => {
               const isActive = activeCategory === cat.id;
               return (
@@ -110,53 +130,36 @@ export function MenuClient({ tableNumber }: MenuClientProps) {
                   key={cat.id}
                   onClick={() => setActiveCategory(cat.id)}
                   className={cn(
-                    "flex-shrink-0 pb-1 font-sans font-medium text-xs tracking-widest uppercase transition-all whitespace-nowrap",
+                    "px-8 py-3 rounded-full font-label-caps text-xs tracking-widest transition-all shadow-sm",
                     isActive
-                      ? "text-primary border-b border-primary"
-                      : "text-on-surface-variant hover:text-on-surface"
+                      ? "bg-secondary text-white shadow-md hover:opacity-90 scale-105"
+                      : "bg-surface-container-low text-on-surface hover:bg-surface-container-high"
                   )}
                 >
-                  {cat.name}
+                  {cat.name.toUpperCase()}
                 </button>
               );
             })}
           </div>
-        </div>
-      </div>
+        </section>
 
-      {/* ── Garson / Hesap Butonları (Stitch Minimalist) ── */}
-      <div className="px-6 pt-6 flex gap-4 max-w-7xl mx-auto w-full animate-fade-in-up">
-        <ServiceRequestButton tableNumber={tableNum} type="WAITER" />
-        <ServiceRequestButton tableNumber={tableNum} type="BILL" />
-      </div>
-
-      {/* ── Main Content ── */}
-      <main className="px-6 pt-6 flex flex-col gap-10 max-w-7xl mx-auto w-full">
-        <section className="animate-fade-in-up" key={activeCategory} style={{ animationDelay: "0.1s" }}>
-          <div className="flex flex-col items-center mb-6 text-center">
-            <span className="font-serif italic text-primary text-sm mb-2">
-              {activeCategory === "cat_yiyecek_001" ? "Münhasır Deneyim" : "Özel Seçimler"}
-            </span>
-            <h2 className="font-serif text-2xl tracking-tight text-on-surface">
-              {activeCategoryData?.name || "Menü"}
-            </h2>
-            <div className="w-12 h-px bg-primary/30 mt-4"></div>
-          </div>
-          
+        {/* ── Product Grid ── */}
+        <section className="animate-fade-in-up" key={activeCategory}>
           {activeProducts.length === 0 ? (
-            <p className="text-center text-on-surface-variant py-10 font-light">Bu kategoride ürün bulunamadı.</p>
+            <p className="text-center text-on-surface-variant py-20 font-light text-lg">Bu kategoride ürün bulunamadı.</p>
           ) : (
-            <div className="flex flex-col gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {activeProducts.map((product) => {
                 const qty = getItemQuantity(product.id);
                 return (
-                  <HorizontalProductCard
+                  <ProductCard
                     key={product.id}
                     product={product}
                     quantity={qty}
                     onAdd={() => handleAddOrIncrement(product)}
                     onIncrement={() => handleAddOrIncrement(product)}
                     onDecrement={() => updateQuantity(product.id, qty - 1)}
+                    onClick={() => setSelectedProduct(product as Product)}
                   />
                 );
               })}
@@ -165,62 +168,79 @@ export function MenuClient({ tableNumber }: MenuClientProps) {
         </section>
       </main>
 
-      {/* Floating Cart Action Bar */}
+      {/* Floating Bottom Cart Preview (Desktop & Mobile FAB) */}
       {cartCount > 0 && (
-        <div className="fixed bottom-0 left-0 w-full z-50 px-6 pb-8 pt-4 bg-gradient-to-t from-background via-background/90 to-transparent pointer-events-none">
-          <button
-            onClick={openCart}
-            className="w-full max-w-xl mx-auto glass-dark-luxury text-white flex items-center justify-between px-8 py-5 rounded-sm shadow-2xl pointer-events-auto active:scale-[0.98] transition-transform duration-300"
-          >
-            <div className="flex items-center gap-4">
-              <div className="bg-primary/20 text-primary w-6 h-6 rounded-full flex items-center justify-center font-sans text-[11px] font-bold">
-                {cartCount}
-              </div>
-              <span className="font-sans text-[11px] font-bold tracking-[0.25em] uppercase">Sipariş Detayları</span>
-            </div>
-            <span className="font-sans text-sm font-light text-primary tracking-tighter" id="cart-total-price">
-              {formatPrice(currentTotal)}
+        <div 
+          onClick={openCart}
+          className="fixed bottom-6 right-6 md:bottom-10 md:right-10 bg-on-surface text-surface px-6 md:px-8 py-3 md:py-4 rounded-full shadow-2xl flex items-center gap-4 cursor-pointer hover:scale-105 transition-transform duration-300 z-40 animate-slide-up"
+        >
+          <div className="relative">
+            <ShoppingBag className="w-5 h-5 md:w-6 md:h-6" />
+            <span className="absolute -top-2 -right-2 bg-secondary text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold">
+              {cartCount}
             </span>
-          </button>
+          </div>
+          <span className="font-label-caps text-[10px] md:text-xs tracking-widest hidden sm:inline-block">SİPARİŞİ GÖR</span>
+          <div className="w-[1px] h-4 bg-surface-variant/30 hidden sm:block"></div>
+          <span className="font-price-lg text-sm md:text-[16px] text-surface">{formatPrice(currentTotal)}</span>
         </div>
       )}
 
       {isMounted && <CustomerOrderWidget tableNumber={tableNum} orders={orders} />}
+
+      {selectedProduct && (
+        <ProductDetailModal
+          product={selectedProduct}
+          onClose={() => setSelectedProduct(null)}
+          onAddToCart={(product, qtyToAdd) => {
+            const existingQty = getItemQuantity(product.id);
+            if (existingQty === 0) {
+                handleAddOrIncrement(product);
+                if (qtyToAdd > 1) {
+                  updateQuantity(product.id, qtyToAdd);
+                }
+            } else {
+                updateQuantity(product.id, existingQty + qtyToAdd);
+            }
+          }}
+        />
+      )}
     </div>
   );
 }
 
-// ─── Big Horizontal Product Card (For Main Dishes) ─────────────────────────
-function HorizontalProductCard({
+// ─── Product Card ─────────────────────────
+function ProductCard({
   product,
   quantity,
   onAdd,
   onIncrement,
   onDecrement,
+  onClick,
 }: {
   product: ReturnType<typeof useProductStore.getState>["products"][0];
   quantity: number;
   onAdd: () => void;
   onIncrement: () => void;
   onDecrement: () => void;
+  onClick?: () => void;
 }) {
   const [imgError, setImgError] = useState(false);
   const inCart = quantity > 0;
 
   return (
-    <article className={cn("group flex gap-4 relative", !product.isAvailable && "opacity-50 grayscale pointer-events-none")}>
-      {/* Compact Image */}
-      <div className="relative w-24 h-24 md:w-28 md:h-28 flex-shrink-0 overflow-hidden rounded-xl bg-outline/20 img-zoom-hover">
+    <article onClick={onClick} className={cn("group bg-white rounded-2xl p-4 shadow-[0_4px_20px_rgba(0,0,0,0.02)] border border-surface-container hover:shadow-[0_20px_40px_rgba(0,0,0,0.06)] transition-all duration-500 flex flex-col h-full cursor-pointer", !product.isAvailable && "opacity-50 grayscale pointer-events-none")}>
+      <div className="relative aspect-square overflow-hidden rounded-xl mb-6 bg-surface-container-low">
         {inCart && (
-          <div className="absolute top-1.5 left-1.5 z-10">
-            <span className="bg-primary/90 text-white font-sans text-[8px] tracking-[0.15em] uppercase px-2 py-1 backdrop-blur-sm shadow-sm rounded-sm">
-              ×{quantity}
+          <div className="absolute top-3 left-3 z-20">
+            <span className="bg-background/90 text-primary font-label-caps text-[10px] tracking-widest uppercase px-3 py-1.5 backdrop-blur-sm shadow-sm rounded-full border border-primary/20">
+              {quantity} Adet Eklendi
             </span>
           </div>
         )}
         {!product.isAvailable && (
           <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-10">
-            <span className="text-white font-sans text-[8px] tracking-[0.2em] uppercase">Tükendi</span>
+            <span className="text-white font-label-caps tracking-[0.2em] uppercase">Tükendi</span>
           </div>
         )}
         {product.imageUrl && !imgError ? (
@@ -228,127 +248,46 @@ function HorizontalProductCard({
           <img
             src={product.imageUrl}
             alt={product.name}
-            className="w-full h-full object-cover transition-transform duration-700"
+            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
             onError={() => setImgError(true)}
             loading="lazy"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-2xl bg-outline/10">🍽️</div>
+          <div className="w-full h-full flex items-center justify-center text-4xl opacity-50 transition-transform duration-700 group-hover:scale-105">🍽️</div>
         )}
-      </div>
-
-      {/* Text & Actions */}
-      <div className="flex-1 flex flex-col justify-between min-w-0 py-0.5">
-        <div>
-          <h3 className="font-serif text-lg text-on-surface tracking-tight leading-snug">
-            {product.name}
-          </h3>
-          <p className="font-sans text-[12px] leading-relaxed text-on-surface-variant font-light mt-0.5 line-clamp-2">
-            {product.description}
-          </p>
-          <ProductTags tags={product.tags} />
-        </div>
-
-        <div className="flex items-center justify-between mt-2">
-          <span className="font-sans text-sm font-semibold tracking-tighter text-on-surface">
-            {formatPrice(product.price)}
-          </span>
-          {product.isAvailable && (
-            inCart ? (
-              <div className="flex items-center border border-outline rounded-full px-1 py-1">
-                <button onClick={onDecrement} className="w-6 h-6 flex items-center justify-center text-on-surface-variant hover:text-on-surface">
-                  <Minus className="w-3.5 h-3.5" />
-                </button>
-                <span className="font-sans text-xs font-bold w-5 text-center select-none">{quantity}</span>
-                <button onClick={onIncrement} className="w-6 h-6 flex items-center justify-center text-primary">
-                  <Plus className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            ) : (
-              <button onClick={onAdd} className="w-8 h-8 rounded-full border border-outline flex items-center justify-center text-primary hover:bg-primary hover:text-white transition-all duration-500">
+        
+        {product.isAvailable && (
+          inCart ? (
+            <div className="absolute bottom-4 right-4 bg-background text-primary rounded-full shadow-xl flex items-center overflow-hidden border border-primary/20 z-10 transition-all duration-300">
+              <button onClick={(e) => { e.stopPropagation(); onDecrement(); }} className="w-10 h-10 flex items-center justify-center hover:bg-surface-container-low active:bg-surface-container-high transition-colors">
+                <Minus className="w-4 h-4" />
+              </button>
+              <span className="font-label-caps text-xs font-bold w-4 text-center select-none">{quantity}</span>
+              <button onClick={(e) => { e.stopPropagation(); onIncrement(); }} className="w-10 h-10 flex items-center justify-center hover:bg-surface-container-low active:bg-surface-container-high transition-colors">
                 <Plus className="w-4 h-4" />
               </button>
-            )
-          )}
-        </div>
-      </div>
-    </article>
-  );
-}
-
-// ─── Small Grid Product Card (For Drinks/Desserts) ─────────────────────────
-function GridProductCard({
-  product,
-  quantity,
-  onAdd,
-  onIncrement,
-  onDecrement,
-}: {
-  product: ReturnType<typeof useProductStore.getState>["products"][0];
-  quantity: number;
-  onAdd: () => void;
-  onIncrement: () => void;
-  onDecrement: () => void;
-}) {
-  const [imgError, setImgError] = useState(false);
-  const inCart = quantity > 0;
-
-  return (
-    <article className={cn("flex flex-col gap-3 relative", !product.isAvailable && "opacity-50 grayscale pointer-events-none")}>
-      <div className="aspect-square overflow-hidden rounded-sm bg-outline/10 img-zoom-hover relative">
-        {inCart && (
-          <div className="absolute top-2 left-2 z-10">
-            <span className="bg-primary/90 text-white font-sans text-[8px] tracking-[0.2em] uppercase px-2 py-1 backdrop-blur-sm shadow-sm">
-              {quantity} Adet
-            </span>
-          </div>
-        )}
-        {product.imageUrl && !imgError ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={product.imageUrl}
-            alt={product.name}
-            className="w-full h-full object-cover transition-transform duration-700"
-            onError={() => setImgError(true)}
-            loading="lazy"
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center text-2xl bg-outline/10">🥤</div>
+            </div>
+          ) : (
+            <button onClick={(e) => { e.stopPropagation(); onAdd(); }} className="absolute bottom-4 right-4 bg-secondary text-white w-12 h-12 flex items-center justify-center rounded-full opacity-0 lg:group-hover:opacity-100 lg:translate-y-2 lg:group-hover:translate-y-0 opacity-100 translate-y-0 transition-all duration-300 shadow-xl hover:scale-105 active:scale-95 z-10">
+              <Plus className="w-6 h-6" />
+            </button>
+          )
         )}
       </div>
 
-      <div className="flex flex-col gap-2 flex-grow">
-        <div className="flex justify-between items-start gap-2">
-          <h3 className="font-serif text-md text-on-surface leading-tight line-clamp-2">
+      <div className="flex flex-col flex-1">
+        <div className="flex justify-between items-start gap-4 mb-2">
+          <h3 className="font-headline-md text-lg md:text-xl text-on-surface line-clamp-2 leading-tight">
             {product.name}
           </h3>
-          <span className="font-sans text-xs text-on-surface font-medium shrink-0">
+          <span className="font-price-lg text-lg text-secondary whitespace-nowrap">
             {formatPrice(product.price)}
           </span>
         </div>
-        
+        <p className="font-body-md text-sm text-on-surface-variant leading-relaxed line-clamp-3 mb-4 flex-1">
+          {product.description}
+        </p>
         <ProductTags tags={product.tags} />
-        
-        <div className="mt-auto">
-          {!product.isAvailable ? (
-            <span className="font-sans text-[10px] uppercase tracking-widest text-on-surface-variant">Tükendi</span>
-          ) : (
-            inCart ? (
-              <div className="flex items-center justify-between border border-primary text-primary py-1 px-2 mt-1">
-                <button onClick={onDecrement} className="p-1 active:scale-95"><Minus className="w-3 h-3" /></button>
-                <span className="font-sans text-[10px] font-bold select-none">{quantity}</span>
-                <button onClick={onIncrement} className="p-1 active:scale-95"><Plus className="w-3 h-3" /></button>
-              </div>
-            ) : (
-              <button
-                onClick={onAdd}
-                className="mt-1 w-full border border-outline py-2 text-[10px] uppercase tracking-[0.2em] text-on-surface-variant hover:border-primary hover:text-primary transition-colors duration-300"
-              >
-                Ekle
-              </button>
-            )
-          )}
-        </div>
       </div>
     </article>
   );
@@ -378,19 +317,19 @@ function ServiceRequestButton({
       onClick={handleRequest}
       disabled={isRequested}
       className={cn(
-        "flex-1 min-h-[48px] px-4 font-sans text-[11px] tracking-[0.15em] uppercase flex items-center justify-center gap-2 transition-all duration-300 border-b active:scale-95",
+        "font-label-caps text-[10px] md:text-[11px] tracking-widest uppercase transition-all duration-300 active:scale-95 py-2 px-4 rounded-full border shadow-sm w-full md:w-auto",
         isRequested
-          ? "border-primary text-primary"
-          : "border-outline text-on-surface-variant active:text-on-surface active:border-on-surface"
+          ? "border-secondary bg-secondary/10 text-secondary"
+          : "border-outline text-on-surface-variant hover:border-primary hover:text-primary bg-surface-container-lowest"
       )}
     >
       {isRequested ? (
-        <>
-          <CheckCircle2 className="w-3.5 h-3.5 flex-shrink-0" />
-          <span>{successLabel}</span>
-        </>
+        <span className="flex items-center justify-center gap-1.5">
+          <CheckCircle2 className="w-3.5 h-3.5" />
+          {successLabel}
+        </span>
       ) : (
-        label
+        <span className="flex items-center justify-center w-full">{label}</span>
       )}
     </button>
   );
@@ -409,16 +348,16 @@ function InvalidTablePage({
       <div className="w-20 h-20 rounded-full border border-outline flex items-center justify-center mb-8">
         <AlertTriangle className="w-8 h-8 text-on-surface-variant" />
       </div>
-      <h1 className="font-serif text-3xl text-on-surface tracking-tight mb-4">
+      <h1 className="font-display text-3xl text-on-surface tracking-tight mb-4">
         Geçersiz Masa
       </h1>
-      <p className="font-sans text-sm leading-relaxed text-on-surface-variant max-w-xs font-light">
+      <p className="font-body-md leading-relaxed text-on-surface-variant max-w-xs font-light">
         &ldquo;Masa {tableNumber}&rdquo; bu restoranda mevcut değil.
         <br />
         Lütfen masa üzerindeki doğru QR kodu okutun.
       </p>
       <div className="mt-6 px-5 py-3 border border-outline rounded-sm flex items-center gap-3">
-        <span className="text-primary font-bold">{totalTables}</span>
+        <span className="text-secondary font-bold">{totalTables}</span>
         <p className="text-sm text-on-surface-variant">
           Bu restoranda <span className="font-semibold text-on-surface">{totalTables} masa</span> bulunuyor.
         </p>
@@ -432,16 +371,16 @@ function ProductTags({ tags }: { tags?: string[] }) {
   if (!tags || tags.length === 0) return null;
 
   const tagConfig: Record<string, { label: string; icon: string; color: string }> = {
-    "vegan": { label: "Vegan", icon: "🌱", color: "text-green-600 bg-green-50 border-green-200" },
-    "vegetarian": { label: "Vejetaryen", icon: "🌿", color: "text-emerald-600 bg-emerald-50 border-emerald-200" },
-    "gluten-free": { label: "Glutensiz", icon: "🌾", color: "text-amber-600 bg-amber-50 border-amber-200" },
-    "contains-dairy": { label: "Süt Ürünü", icon: "🥛", color: "text-blue-600 bg-blue-50 border-blue-200" },
-    "contains-nuts": { label: "Fındık/Fıstık", icon: "🥜", color: "text-orange-600 bg-orange-50 border-orange-200" },
-    "spicy": { label: "Acılı", icon: "🌶️", color: "text-red-600 bg-red-50 border-red-200" },
+    "vegan": { label: "Vegan", icon: "🌱", color: "text-green-700 bg-green-50 border-green-200" },
+    "vegetarian": { label: "Vejetaryen", icon: "🌿", color: "text-emerald-700 bg-emerald-50 border-emerald-200" },
+    "gluten-free": { label: "Glutensiz", icon: "🌾", color: "text-amber-700 bg-amber-50 border-amber-200" },
+    "contains-dairy": { label: "Süt Ürünü", icon: "🥛", color: "text-blue-700 bg-blue-50 border-blue-200" },
+    "contains-nuts": { label: "Kuruyemiş", icon: "🥜", color: "text-orange-700 bg-orange-50 border-orange-200" },
+    "spicy": { label: "Acılı", icon: "🌶️", color: "text-red-700 bg-red-50 border-red-200" },
   };
 
   return (
-    <div className="flex flex-wrap gap-1.5 mt-1">
+    <div className="flex flex-wrap gap-2 mt-auto pt-2">
       {tags.map(tag => {
         const config = tagConfig[tag];
         if (!config) return null;
@@ -449,12 +388,12 @@ function ProductTags({ tags }: { tags?: string[] }) {
           <span 
             key={tag} 
             className={cn(
-              "flex items-center gap-1 px-1.5 py-0.5 rounded-sm border text-[9px] uppercase tracking-wider font-bold", 
+              "flex items-center gap-1 px-2 py-1 rounded-sm border text-[10px] uppercase tracking-wider font-semibold", 
               config.color
             )}
             title={config.label}
           >
-            <span className="text-[10px] leading-none">{config.icon}</span> {config.label}
+            <span className="text-[11px] leading-none">{config.icon}</span> {config.label}
           </span>
         );
       })}

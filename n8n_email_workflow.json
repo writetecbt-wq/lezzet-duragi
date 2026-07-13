@@ -1,0 +1,82 @@
+{
+  "name": "TXT'den Toplu Gmail Gönderimi",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "bd0538a2-21a4-44df-9e45-4df0218b321a",
+      "name": "When clicking \"Execute Workflow\"",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [380, 240]
+    },
+    {
+      "parameters": {
+        "operation": "read",
+        "fileName": "/Users/aly/Documents/antigravity/intelligent-lovelace/alicilar.txt"
+      },
+      "id": "e0e3b9c6-11f2-4ed0-9b37-259779c16e78",
+      "name": "TXT Dosyasını Oku",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [600, 240]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Eğer txt dosyasının içeriği json.data içindeyse al, yoksa binary'den çevir\nlet fileContent = '';\nif ($input.first().json && $input.first().json.data) {\n    fileContent = $input.first().json.data;\n} else if ($input.first().binary && $input.first().binary.data) {\n    const buff = Buffer.from($input.first().binary.data.data, 'base64');\n    fileContent = buff.toString('utf-8');\n}\n\nconst emails = fileContent.split('\\n').map(e => e.trim()).filter(e => e !== '');\n\nreturn emails.map(email => ({ json: { email: email } }));"
+      },
+      "id": "b3e9b722-6b95-4428-afdb-f544b67f1b63",
+      "name": "Mailleri Ayır",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [820, 240]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.email }}",
+        "subject": "Şirketimizden Önemli Duyuru",
+        "message": "Merhaba,\n\nBu şirketimizden gönderilen sabit ve otomatik bir bilgilendirme mailidir.",
+        "options": {}
+      },
+      "id": "c1f7a2a4-71a2-4632-a567-913a362f6b8b",
+      "name": "Gmail",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [1040, 240]
+    }
+  ],
+  "connections": {
+    "When clicking \"Execute Workflow\"": {
+      "main": [
+        [
+          {
+            "node": "TXT Dosyasını Oku",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "TXT Dosyasını Oku": {
+      "main": [
+        [
+          {
+            "node": "Mailleri Ayır",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mailleri Ayır": {
+      "main": [
+        [
+          {
+            "node": "Gmail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

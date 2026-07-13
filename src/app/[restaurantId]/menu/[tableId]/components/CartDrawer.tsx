@@ -56,7 +56,7 @@ export function CartDrawer({ tableId, restaurantId }: CartDrawerProps) {
 
     try {
       // Save to store (syncs with admin panel)
-      await useOrderStore.getState().placeOrder(
+      const orderId = await useOrderStore.getState().placeOrder(
         Number(tableId),
         orderItems,
         grandTotal,
@@ -68,12 +68,17 @@ export function CartDrawer({ tableId, restaurantId }: CartDrawerProps) {
 
       clearCart();
       closeCart();
+
+      // Navigate to confirmation with the orderId
+      router.push(
+        `/order-confirmed?id=${orderId}&table=${tableId}&restaurant=${restaurantId}&amount=${grandTotal}`
+      );
     } catch (error) {
       console.error("Order error", error);
     } finally {
       setIsSubmitting(false);
     }
-  }, [items, clearCart, closeCart, tableId, grandTotal, notes]);
+  }, [items, clearCart, closeCart, router, tableId, restaurantId, grandTotal, notes]);
 
   if (!isOpen) return null;
 

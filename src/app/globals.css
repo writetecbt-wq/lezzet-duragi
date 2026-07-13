@@ -18,13 +18,34 @@
   --color-brand-900: #5e432c;
 
   /* Neutrals / Theme */
-  --color-primary: #C5A059;
-  --color-background: #FDFCFB;
-  --color-surface: #FFFFFF;
-  --color-on-surface: #1A1A1A;
-  --color-on-surface-variant: #666666;
-  --color-outline: #E5E1DA;
+  --color-primary: #C5A059; /* Kept from previous for compatibility */
+  --color-secondary: #775a19;
+  --color-background: #fcf8fb;
+  --color-surface: #fcf8fb;
+  --color-surface-container-low: #f6f3f5;
+  --color-surface-container: #f0edef;
+  --color-surface-container-high: #eae7ea;
+  --color-on-surface: #1b1b1d;
+  --color-on-surface-variant: #444748;
+  --color-outline: #747878;
+  --color-outline-variant: #c4c7c8;
   --color-accent-dark: #2C2C2C;
+
+  /* Typography / Fonts */
+  --font-display: var(--font-inter);
+  --font-headline-md: var(--font-inter);
+  --font-headline-lg: var(--font-inter);
+  --font-body-md: var(--font-inter);
+  --font-body-lg: var(--font-inter);
+  --font-label-caps: var(--font-inter);
+  --font-price-lg: var(--font-inter);
+
+  /* Spacing */
+  --spacing-stack-gap-sm: 8px;
+  --spacing-stack-gap-md: 16px;
+  --spacing-stack-gap-lg: 32px;
+  --spacing-container-margin: 20px;
+  --spacing-section-padding: 48px;
 
   /* Keep legacy surface colors for admin dashboard compatibility */
   --color-surface-50: #fafafa;
@@ -37,6 +58,9 @@
   --color-surface-700: #3f3f46;
   --color-surface-800: #27272a;
   --color-surface-900: #18181b;
+
+  /* Accent Gold for detail modal */
+  --color-accent-gold: #C5A059;
 
   /* Status */
   --color-status-pending: #f59e0b;

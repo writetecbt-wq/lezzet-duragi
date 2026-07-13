@@ -4,8 +4,9 @@ import { MockOrderItem } from "@/lib/mock-data";
 import { db } from "@/lib/firebase/config";
 import { collection, doc, setDoc, updateDoc, onSnapshot, query, orderBy, serverTimestamp, Timestamp } from "firebase/firestore";
 
-export type OrderStatus = "PENDING" | "PREPARING" | "COMPLETED" | "PAID" | "CANCELLED";
+export type OrderStatus = "PENDING" | "PREPARING" | "ON_THE_WAY" | "DELIVERED" | "COMPLETED" | "PAID" | "CANCELLED";
 export type ServiceRequestType = "WAITER" | "BILL";
+export type OrderSource = "DINE_IN" | "YEMEKSEPETI" | "GETIR" | "TRENDYOL" | "MIGROS";
 
 export type FirestoreOrder = {
   id: string;
@@ -18,6 +19,9 @@ export type FirestoreOrder = {
   notes?: string;
   waiterName?: string;
   restaurantId?: string;
+  source?: OrderSource;
+  courierName?: string;
+  customerInfo?: { name: string; address: string; phone: string };
 };
 
 export type ServiceRequest = {
@@ -50,7 +54,7 @@ type OrderStore = {
     items: MockOrderItem[],
     totalAmount: number,
     notes?: string
-  ) => Promise<void>;
+  ) => Promise<string>;
   updateOrderStatus: (orderId: string, status: OrderStatus, waiterName?: string) => Promise<void>;
   cancelOrder: (orderId: string) => Promise<void>;
 
@@ -58,6 +62,9 @@ type OrderStore = {
   updateOrderItems: (orderId: string, items: MockOrderItem[], newTotal: number) => Promise<void>;
   // Garson + Admin: Masa değiştirme
   changeOrderTable: (orderId: string, newTableNumber: number) => Promise<void>;
+  // Paket Servis
+  assignCourier: (orderId: string, courierName: string) => Promise<void>;
+  simulateExternalOrder: (source: OrderSource) => Promise<string>;
 
   requestService: (tableNumber: number, type: ServiceRequestType) => Promise<void>;
   resolveServiceRequest: (id: string) => Promise<void>;
@@ -87,23 +94,73 @@ export const useOrderStore = create<OrderStore>()(
           items,
           notes: notes || "",
           restaurantId: "rest_demo_001", // hardcoded for now
+          source: "DINE_IN" as OrderSource,
         };
 
         try {
           await setDoc(doc(db, "orders", orderId), newOrder);
-          // Also update local state for the client
-          set((state) => ({ 
-            orders: [{...newOrder, createdAt: new Date()} as FirestoreOrder, ...state.orders] 
-          }));
+          // onSnapshot listener will automatically receive this new order immediately
+          return orderId;
         } catch (error) {
           console.error("Error placing order:", error);
+          throw error;
+        }
+      },
+
+      simulateExternalOrder: async (source) => {
+        const orderId = `ext_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+        
+        const SAMPLE_ITEMS = [
+          { name: "Izgara Köfte Menu", price: 250 },
+          { name: "Tavuk Şiş Menu", price: 220 },
+          { name: "Karışık Pizza Büyük", price: 300 },
+          { name: "Limonata", price: 50 },
+          { name: "Künefe", price: 150 }
+        ];
+        
+        const count = Math.floor(Math.random() * 3) + 1;
+        const items = Array.from({ length: count }, () => {
+          const sample = SAMPLE_ITEMS[Math.floor(Math.random() * SAMPLE_ITEMS.length)];
+          return {
+            productId: `prod_${Math.random()}`,
+            name: sample.name,
+            quantity: Math.floor(Math.random() * 2) + 1,
+            unitPrice: sample.price,
+          };
+        });
+        
+        const totalAmount = items.reduce((s, i) => s + i.quantity * i.unitPrice, 0);
+
+        const newOrder = {
+          id: orderId,
+          tableNumber: 0, // 0 means package
+          status: "PENDING" as OrderStatus,
+          totalAmount,
+          createdAt: serverTimestamp(),
+          items,
+          notes: "Temassız teslimat.",
+          restaurantId: "rest_demo_001",
+          source,
+          customerInfo: {
+            name: "Müşteri " + Math.floor(Math.random() * 100),
+            address: "Örnek Mah. Test Sok. No: 12",
+            phone: "0555 555 5555"
+          }
+        };
+
+        try {
+          await setDoc(doc(db, "orders", orderId), newOrder);
+          return orderId;
+        } catch (error) {
+          console.error("Error placing external order:", error);
+          throw error;
         }
       },
 
       updateOrderStatus: async (orderId, status, waiterName) => {
         try {
           const updateData: Record<string, unknown> = { status };
-          if (status === "COMPLETED") {
+          if (status === "COMPLETED" || status === "DELIVERED") {
             updateData.completedAt = serverTimestamp();
           }
           if (waiterName) {
@@ -116,7 +173,7 @@ export const useOrderStore = create<OrderStore>()(
                 ? { 
                     ...o, 
                     status, 
-                    ...(status === "COMPLETED" ? { completedAt: new Date() } : {}),
+                    ...((status === "COMPLETED" || status === "DELIVERED") ? { completedAt: new Date() } : {}),
                     ...(waiterName ? { waiterName } : {})
                   }
                 : o
@@ -166,6 +223,22 @@ export const useOrderStore = create<OrderStore>()(
         }
       },
 
+      assignCourier: async (orderId, courierName) => {
+        try {
+          await updateDoc(doc(db, "orders", orderId), { 
+            courierName, 
+            status: "ON_THE_WAY" 
+          });
+          set((state) => ({
+            orders: state.orders.map((o) =>
+              o.id === orderId ? { ...o, courierName, status: "ON_THE_WAY" } : o
+            ),
+          }));
+        } catch (error) {
+          console.error("Error assigning courier:", error);
+        }
+      },
+
       requestService: async (tableNumber, type) => {
         const state = get();
         const exists = state.serviceRequests.some(
@@ -185,9 +258,7 @@ export const useOrderStore = create<OrderStore>()(
 
         try {
           await setDoc(doc(db, "service_requests", reqId), newReq);
-          set((state) => ({ 
-            serviceRequests: [{...newReq, createdAt: new Date()} as ServiceRequest, ...(state.serviceRequests || [])] 
-          }));
+          // onSnapshot handles local update
         } catch (error) {
           console.error("Error requesting service:", error);
         }

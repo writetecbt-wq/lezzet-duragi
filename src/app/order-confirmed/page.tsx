@@ -5,6 +5,8 @@ import Link from "next/link";
 import { CheckCircle, ChefHat, Clock, Home } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { formatPrice } from "@/lib/mock-data";
+import { db } from "@/lib/firebase/config";
+import { doc, onSnapshot } from "firebase/firestore";
 
 // Confetti particle
 type Particle = {
@@ -23,6 +25,8 @@ export default function OrderConfirmedPage() {
   const tableId = searchParams.get("table") ?? "?";
   const restaurantId = searchParams.get("restaurant") ?? "rest_demo_001";
   const amount = Number(searchParams.get("amount") ?? 0);
+
+  const orderId = searchParams.get("id");
 
   const [step, setStep] = useState(0); // 0=confirmed, 1=preparing, 2=ready
   const [particles, setParticles] = useState<Particle[]>([]);
@@ -43,15 +47,21 @@ export default function OrderConfirmedPage() {
     setParticles(p);
   }, []);
 
-  // Simulate status progression
+  // Real-time status progression from Firebase
   useEffect(() => {
-    const t1 = setTimeout(() => setStep(1), 4000);
-    const t2 = setTimeout(() => setStep(2), 12000);
-    return () => {
-      clearTimeout(t1);
-      clearTimeout(t2);
-    };
-  }, []);
+    if (!orderId) return;
+
+    const unsubscribe = onSnapshot(doc(db, "orders", orderId), (docSnap) => {
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        if (data.status === "PENDING") setStep(0);
+        else if (data.status === "PREPARING") setStep(1);
+        else if (data.status === "COMPLETED") setStep(2);
+      }
+    });
+
+    return () => unsubscribe();
+  }, [orderId]);
 
   const steps = [
     { label: "Sipariş Alındı", icon: CheckCircle, done: step >= 0 },
