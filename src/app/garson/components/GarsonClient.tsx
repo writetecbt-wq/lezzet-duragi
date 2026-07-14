@@ -182,8 +182,8 @@ function TableDetailPanel({
   setChangingTable: (id: string | null) => void;
   updateOrderItems: (orderId: string, items: MockOrderItem[], total: number) => void;
   changeOrderTable: (orderId: string, newTable: number) => void;
-  updateOrderStatus: (orderId: string, status: "PENDING" | "PREPARING" | "COMPLETED" | "PAID" | "CANCELLED", waiterName?: string) => void;
-  placeOrder: (tableNumber: number, items: MockOrderItem[], totalAmount: number, notes?: string) => Promise<void>;
+  updateOrderStatus: (orderId: string, status: import("@/store/order.store").OrderStatus, waiterName?: string) => void;
+  placeOrder: (tableNumber: number, items: MockOrderItem[], totalAmount: number, notes?: string) => Promise<string>;
   products: ReturnType<typeof useProductStore.getState>["products"];
   categories: ReturnType<typeof useProductStore.getState>["categories"];
   totalTables: number;

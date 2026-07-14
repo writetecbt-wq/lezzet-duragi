@@ -61,7 +61,7 @@ export async function POST(req: Request) {
       }
     };
 
-    const ordersRef = collection(db, "restaurants", restaurantId, "orders");
+    const ordersRef = collection(db, "orders");
     const docRef = await addDoc(ordersRef, newOrder);
 
     return NextResponse.json({

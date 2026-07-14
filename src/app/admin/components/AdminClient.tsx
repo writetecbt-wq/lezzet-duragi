@@ -22,12 +22,12 @@ import {
   formatTime,
   getOrderDuration,
 } from "@/lib/mock-data";
-import { useOrderStore, FirestoreOrder } from "@/store/order.store";
+import { useOrderStore, FirestoreOrder, OrderStatus } from "@/store/order.store";
 import { cn } from "@/lib/utils";
 import { OrderEditor } from "@/components/shared/OrderEditor";
 import { useProductStore } from "@/store/product.store";
 
-type OrderStatus = "PENDING" | "PREPARING" | "COMPLETED" | "PAID" | "CANCELLED";
+
 
 const STATUS_CONFIG: Record<
   OrderStatus,

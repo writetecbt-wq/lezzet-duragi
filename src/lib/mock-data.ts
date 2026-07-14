@@ -263,7 +263,7 @@ export type MockOrderItem = {
 export type MockOrder = {
   id: string;
   tableNumber: number;
-  status: "PENDING" | "PREPARING" | "COMPLETED" | "PAID" | "CANCELLED";
+  status: "PENDING" | "PREPARING" | "ON_THE_WAY" | "DELIVERED" | "COMPLETED" | "PAID" | "CANCELLED";
   totalAmount: number;
   createdAt: Date;
   completedAt?: Date;

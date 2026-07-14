@@ -30,13 +30,15 @@ export function DashboardClient() {
   if (!isMounted) return null;
 
   // Basic Stats
-  const completedOrders = orders.filter((o) => o.status === "COMPLETED" || o.status === "PAID");
-  const todayRevenue = completedOrders.reduce((sum, o) => sum + o.totalAmount, 0);
-  const activeOrdersCount = orders.filter((o) => o.status === "PENDING" || o.status === "PREPARING").length;
+  const completedOrdersCount = orders.filter((o) => o.status === "COMPLETED").length;
+  const paidOrders = orders.filter((o) => o.status === "PAID");
+  const todayRevenue = paidOrders.reduce((sum, o) => sum + o.totalAmount, 0);
+  const activeOrdersCount = orders.filter((o) => o.status === "PENDING" || o.status === "PREPARING" || o.status === "ON_THE_WAY").length;
 
   // Popular Products Calculation
   const productCountMap = new Map<string, { name: string; count: number; revenue: number }>();
-  completedOrders.forEach(order => {
+  // Use paidOrders to calculate revenue and popular products accurately
+  paidOrders.forEach(order => {
     order.items.forEach(item => {
       const existing = productCountMap.get(item.productId) || { name: item.name, count: 0, revenue: 0 };
       existing.count += item.quantity;
@@ -54,7 +56,7 @@ export function DashboardClient() {
   // Initialize standard hours 10:00 to 22:00
   for (let i = 10; i <= 22; i++) hourlyDataMap.set(i, 0);
 
-  completedOrders.forEach(order => {
+  paidOrders.forEach(order => {
     let hour = order.createdAt.getHours();
     // Round to standard hours for display purposes if out of bounds
     if (hour < 10) hour = 10;
@@ -79,7 +81,7 @@ export function DashboardClient() {
       {/* ── KPI Cards ── */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard icon={TrendingUp} label="Bugünkü Ciro" value={formatPrice(todayRevenue)} trend="+12%" color="text-brand-400" bg="bg-brand-500/10" border="border-brand-500/20" />
-        <StatCard icon={ShoppingCart} label="Tamamlanan Sipariş" value={completedOrders.length} color="text-green-400" bg="bg-green-500/10" border="border-green-500/20" />
+        <StatCard icon={ShoppingCart} label="Tamamlanan Sipariş" value={completedOrdersCount} color="text-green-400" bg="bg-green-500/10" border="border-green-500/20" />
         <StatCard icon={Clock} label="Aktif Siparişler" value={activeOrdersCount} color="text-amber-400" bg="bg-amber-500/10" border="border-amber-500/20" />
         <StatCard icon={Utensils} label="Hizmet Verilen Masa" value={new Set(orders.map(o => o.tableNumber)).size} color="text-blue-400" bg="bg-blue-500/10" border="border-blue-500/20" />
       </div>
