@@ -399,6 +399,34 @@ export function GarsonClient() {
           </div>
         ) : (
           <div className="flex-1 overflow-y-auto p-6">
+            
+            {/* ALERT FOR UNASSIGNED ORDERS */}
+            {(() => {
+              const { tOrders, waiter } = getTableMeta(selectedTable);
+              if (tOrders.length > 0 && !waiter) {
+                return (
+                  <div className="mb-6 p-4 rounded-xl flex items-center justify-between animate-pulse" style={{ background: "rgba(239,68,68,0.15)", border: "2px solid rgba(239,68,68,0.5)" }}>
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full flex items-center justify-center bg-red-500 text-white shadow-[0_0_15px_rgba(239,68,68,0.5)]">
+                        <AlertCircle className="w-6 h-6" />
+                      </div>
+                      <div>
+                        <h4 className="text-red-400 font-bold">Müşteri Siparişi Var!</h4>
+                        <p className="text-sm text-red-300">Bu masada menüden verilmiş ve henüz üstlenilmemiş sipariş(ler) bekliyor.</p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => setDetailTable(selectedTable)}
+                      className="px-4 py-2 bg-red-500 text-white rounded-lg font-bold text-sm hover:bg-red-600 transition-colors shadow-lg"
+                    >
+                      Siparişi Üstlen
+                    </button>
+                  </div>
+                );
+              }
+              return null;
+            })()}
+
             {displayProducts.length === 0 ? (
               <div className="flex items-center justify-center h-full" style={{ color: "#584237" }}>
                 <p className="text-sm">Ürün bulunamadı</p>
@@ -837,7 +865,9 @@ function TableDetailModal({
                       </div>
                       <div className="flex gap-2 mb-2">
                         {order.status === "PENDING" && (
-                          <button onClick={() => updateOrderStatus(order.id, "PREPARING")} className="flex-1 py-2 rounded-xl text-xs font-bold" style={{ background: "#f97316", color: "#552100" }}>Hazırlanıyor İşaretle</button>
+                          <button onClick={() => updateOrderStatus(order.id, "PREPARING", !order.waiterName ? activeWaiter.name : undefined)} className="flex-1 py-2 rounded-xl text-xs font-bold" style={{ background: "#f97316", color: "#552100" }}>
+                            {!order.waiterName ? "Siparişi Üstlen" : "Hazırlanıyor İşaretle"}
+                          </button>
                         )}
                         {order.status === "PREPARING" && (
                           <button onClick={() => updateOrderStatus(order.id, "COMPLETED")} className="flex-1 py-2 rounded-xl text-xs font-bold" style={{ background: "#22c55e", color: "#fff" }}>Tamamlandı İşaretle</button>
