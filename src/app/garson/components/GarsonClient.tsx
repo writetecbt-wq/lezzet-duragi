@@ -409,30 +409,16 @@ export function GarsonClient() {
                         border: inCart ? "1px solid #f97316" : "1px solid #584237",
                       }}
                     >
-                      {/* Image */}
-                      <div className="h-32 overflow-hidden relative" style={{ background: "#34343b" }}>
-                        {product.imageUrl ? (
-                          <img
-                            src={product.imageUrl}
-                            alt={product.name}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                          />
-                        ) : (
-                          <div className="flex items-center justify-center h-full text-3xl">🍽️</div>
-                        )}
+                      <div className="p-3 flex justify-between items-center flex-1 relative">
                         {inCart && (
                           <div
-                            className="absolute top-2 right-2 w-7 h-7 rounded-full flex items-center justify-center text-sm font-black"
+                            className="absolute -top-2 -right-2 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black z-10"
                             style={{ background: "#f97316", color: "#552100" }}
                           >
                             {inCart.quantity}
                           </div>
                         )}
-                      </div>
-
-                      {/* Info + Actions */}
-                      <div className="p-4 flex justify-between items-end flex-1">
-                        <div>
+                        <div className="pr-2">
                           <h4 className="font-semibold text-sm leading-snug line-clamp-2" style={{ color: "#e4e1ea" }}>
                             {product.name}
                           </h4>
@@ -442,20 +428,20 @@ export function GarsonClient() {
                         </div>
 
                         {inCart ? (
-                          <div className="flex items-center rounded-lg overflow-hidden" style={{ border: "1px solid #584237" }}>
+                          <div className="flex items-center rounded-lg overflow-hidden shrink-0" style={{ border: "1px solid #584237" }}>
                             <button
                               onClick={() => updateQty(product.id, -1)}
-                              className="w-8 h-8 flex items-center justify-center transition-colors"
+                              className="w-7 h-7 flex items-center justify-center transition-colors"
                               style={{ background: "#34343b", color: "#e4e1ea" }}
                             >
                               <Minus className="w-3 h-3" />
                             </button>
-                            <span className="w-6 text-center text-sm font-bold" style={{ color: "#e4e1ea" }}>
+                            <span className="w-5 text-center text-xs font-bold" style={{ color: "#e4e1ea" }}>
                               {inCart.quantity}
                             </span>
                             <button
                               onClick={() => updateQty(product.id, 1)}
-                              className="w-8 h-8 flex items-center justify-center transition-colors"
+                              className="w-7 h-7 flex items-center justify-center transition-colors"
                               style={{ background: "#f97316", color: "#552100" }}
                             >
                               <Plus className="w-3 h-3" />
@@ -464,7 +450,7 @@ export function GarsonClient() {
                         ) : (
                           <button
                             onClick={() => addToCart(product.id)}
-                            className="w-10 h-10 rounded-full flex items-center justify-center transition-colors"
+                            className="w-8 h-8 rounded-full shrink-0 flex items-center justify-center transition-colors"
                             style={{ background: "#34343b", color: "#e4e1ea" }}
                             onMouseEnter={e => {
                               (e.currentTarget as HTMLButtonElement).style.background = "#f97316";
