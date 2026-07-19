@@ -56,7 +56,7 @@ export function CustomerOrderWidget({ tableNumber, orders }: CustomerOrderWidget
   const allItems = activeOrders.flatMap(o => o.items);
 
   return (
-    <div className="fixed bottom-24 right-6 w-80 bg-white shadow-2xl rounded-2xl border border-zinc-100 p-4 z-40 animate-slide-up transition-all duration-300">
+    <div className="fixed bottom-24 right-4 left-4 md:left-auto md:right-6 md:w-80 bg-white shadow-2xl rounded-2xl border border-zinc-100 p-3 md:p-4 z-40 animate-slide-up transition-all duration-300">
       
       {activeWaiter && (
         <div className="flex items-center gap-2 mb-3 bg-blue-50 border border-blue-100 p-2 rounded-xl text-blue-800 animate-fade-in">
@@ -74,8 +74,8 @@ export function CustomerOrderWidget({ tableNumber, orders }: CustomerOrderWidget
         onClick={() => setIsExpanded(!isExpanded)}
         className="w-full text-left"
       >
-        <div className={cn("flex items-center gap-3 p-3 rounded-xl border mb-3 transition-colors", statusColor)}>
-          <div className="bg-white p-2 rounded-full shadow-sm flex-shrink-0">
+        <div className={cn("flex items-center gap-2 md:gap-3 p-2 md:p-3 rounded-xl border transition-colors", isExpanded ? "mb-3" : "mb-0", statusColor)}>
+          <div className="bg-white p-1.5 md:p-2 rounded-full shadow-sm flex-shrink-0">
             {statusIcon}
           </div>
           <div className="flex-1">

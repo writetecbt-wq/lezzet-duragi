@@ -66,7 +66,7 @@ export function GarsonClient() {
     const tOrders = orders.filter(o => o.tableNumber === n && o.status !== "PAID" && o.status !== "CANCELLED");
     const hasReq  = serviceRequests.some(r => r.tableNumber === n && r.status === "PENDING");
     const wName   = tOrders[0]?.waiterName;
-    const waiter  = WAITERS.find(w => w.id === wName);
+    const waiter  = WAITERS.find(w => w.name === wName || w.id === wName);
     return { tOrders, hasReq, waiter, occupied: tOrders.length > 0 };
   };
 
