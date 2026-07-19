@@ -109,16 +109,16 @@ export function GarsonClient() {
 
   return (
     <div
-      className="flex h-full overflow-hidden font-sans"
+      className="flex flex-col md:flex-row h-full overflow-y-auto md:overflow-hidden font-sans"
       style={{ background: "#131319", color: "#e4e1ea" }}
     >
       {/* ─── LEFT PANEL ─────────────────────────────────────────────────── */}
       <aside
-        className="flex flex-col h-full z-10 flex-shrink-0"
+        className="flex flex-col md:h-full z-10 flex-shrink-0 w-full md:w-[30%] h-auto md:h-full"
         style={{
-          width: "30%",
           background: "#1f1f25",
           borderRight: "1px solid #584237",
+          borderBottom: "1px solid #584237",
           boxShadow: "4px 0 24px rgba(0,0,0,0.5)",
         }}
       >
@@ -218,7 +218,7 @@ export function GarsonClient() {
         </div>
 
         {/* Table Grid */}
-        <div className="flex-1 overflow-y-auto px-6 py-5">
+        <div className="flex-1 max-h-[300px] md:max-h-none overflow-y-auto px-6 py-5">
           <div className="mb-4">
             <h3 className="text-xs font-bold uppercase tracking-widest mb-2 flex items-center gap-2" style={{ color: "#e0c0b1" }}>
               <span>⊞</span> Masalar
@@ -305,7 +305,7 @@ export function GarsonClient() {
 
       {/* ─── CENTER PANEL ────────────────────────────────────────────────── */}
       <main
-        className="flex flex-col h-full flex-1 overflow-hidden"
+        className="flex flex-col h-auto md:h-full w-full md:w-auto flex-1 overflow-visible md:overflow-hidden order-3 md:order-2"
         style={{ background: "#131319" }}
       >
         {/* Category Tabs */}
@@ -397,7 +397,7 @@ export function GarsonClient() {
                 <p className="text-sm">Ürün bulunamadı</p>
               </div>
             ) : (
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                 {displayProducts.map(product => {
                   const inCart = cart.find(i => i.productId === product.id);
                   return (
@@ -490,11 +490,11 @@ export function GarsonClient() {
 
       {/* ─── RIGHT PANEL ─────────────────────────────────────────────────── */}
       <aside
-        className="flex flex-col h-full flex-shrink-0 z-10"
+        className="flex flex-col md:h-full flex-shrink-0 z-10 w-full md:w-[25%] h-auto order-2 md:order-3"
         style={{
-          width: "25%",
           background: "#1f1f25",
           borderLeft: "1px solid #584237",
+          borderBottom: "1px solid #584237",
           boxShadow: "-4px 0 24px rgba(0,0,0,0.5)",
         }}
       >
