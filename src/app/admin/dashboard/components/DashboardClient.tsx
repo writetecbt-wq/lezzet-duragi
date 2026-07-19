@@ -30,7 +30,7 @@ export function DashboardClient() {
   if (!isMounted) return null;
 
   // Basic Stats
-  const completedOrdersCount = orders.filter((o) => o.status === "COMPLETED").length;
+  const completedOrdersCount = orders.filter((o) => o.status === "COMPLETED" || o.status === "PAID").length;
   const paidOrders = orders.filter((o) => o.status === "PAID");
   const todayRevenue = paidOrders.reduce((sum, o) => sum + o.totalAmount, 0);
   const activeOrdersCount = orders.filter((o) => o.status === "PENDING" || o.status === "PREPARING" || o.status === "ON_THE_WAY").length;
@@ -51,7 +51,6 @@ export function DashboardClient() {
     .sort((a, b) => b.count - a.count)
     .slice(0, 5);
 
-  // Hourly Revenue Data Calculation (Mock based on created times of completed orders)
   const hourlyDataMap = new Map<number, number>();
   // Initialize standard hours 10:00 to 22:00
   for (let i = 10; i <= 22; i++) hourlyDataMap.set(i, 0);
@@ -63,6 +62,33 @@ export function DashboardClient() {
     if (hour > 22) hour = 22;
     hourlyDataMap.set(hour, (hourlyDataMap.get(hour) || 0) + order.totalAmount);
   });
+
+  const WAITERS = [
+    { id: "ahmet",  name: "Ahmet",  color: "#f97316" },
+    { id: "mehmet", name: "Mehmet", color: "#3b82f6" },
+    { id: "ayse",   name: "Ayşe",   color: "#a855f7" },
+    { id: "ali",    name: "Ali",    color: "#22c55e" },
+    { id: "zeynep", name: "Zeynep", color: "#ec4899" },
+  ];
+
+  const waiterPerformanceMap = new Map<string, { id: string, name: string, color: string, orderCount: number, revenue: number }>();
+  
+  WAITERS.forEach(w => {
+    waiterPerformanceMap.set(w.id, { id: w.id, name: w.name, color: w.color, orderCount: 0, revenue: 0 });
+  });
+
+  paidOrders.forEach(order => {
+    if (order.waiterName) {
+      const waiter = waiterPerformanceMap.get(order.waiterName);
+      if (waiter) {
+        waiter.orderCount += 1;
+        waiter.revenue += order.totalAmount;
+      }
+    }
+  });
+
+  const waiterPerformance = Array.from(waiterPerformanceMap.values())
+    .sort((a, b) => b.revenue - a.revenue);
 
   const hourlyData = Array.from(hourlyDataMap.entries())
     .map(([hour, total]) => ({
@@ -108,7 +134,7 @@ export function DashboardClient() {
         </div>
 
         {/* ── Top Selling Products ── */}
-        <div className="bg-[#16161b] border border-white/5 rounded-2xl p-5 shadow-lg flex flex-col">
+        <div className="bg-[#16161b] border border-white/5 rounded-2xl p-5 shadow-lg flex flex-col h-full max-h-[352px]">
           <h3 className="font-semibold mb-4 text-zinc-200 flex items-center justify-between">
             <span>En Çok Satanlar</span>
             <span className="text-xs text-brand-400 font-medium px-2 py-1 bg-brand-500/10 rounded-lg">Bugün</span>
@@ -122,18 +148,51 @@ export function DashboardClient() {
             ) : (
               topProducts.map((product, index) => (
                 <div key={product.name} className="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-white/5 hover:bg-white/10 transition-colors">
-                  <div className="w-8 h-8 rounded-full bg-brand-500/20 text-brand-400 flex items-center justify-center font-bold text-sm">
+                  <div className="w-8 h-8 rounded-full bg-brand-500/20 text-brand-400 flex items-center justify-center font-bold text-sm shrink-0">
                     {index + 1}
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold text-white truncate">{product.name}</p>
                     <p className="text-xs text-zinc-400">{product.count} adet satıldı</p>
                   </div>
-                  <div className="text-right">
+                  <div className="text-right shrink-0">
                     <p className="text-sm font-bold text-green-400">{formatPrice(product.revenue)}</p>
                   </div>
                 </div>
               ))
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pb-6">
+        {/* ── Garson Performansı ── */}
+        <div className="bg-[#16161b] border border-white/5 rounded-2xl p-5 shadow-lg flex flex-col h-[352px]">
+          <h3 className="font-semibold mb-4 text-zinc-200 flex items-center justify-between">
+            <span>Garson Performansı</span>
+            <span className="text-xs text-brand-400 font-medium px-2 py-1 bg-brand-500/10 rounded-lg">Bugün</span>
+          </h3>
+          
+          <div className="flex-1 overflow-y-auto space-y-3 pr-1">
+            {waiterPerformance.some(w => w.orderCount > 0) ? (
+              waiterPerformance.map((waiter, index) => (
+                <div key={waiter.id} className="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-white/5 hover:bg-white/10 transition-colors">
+                  <div className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm shrink-0" style={{ backgroundColor: `${waiter.color}20`, color: waiter.color }}>
+                    {index + 1}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-white truncate">{waiter.name}</p>
+                    <p className="text-xs text-zinc-400">{waiter.orderCount} sipariş teslim edildi</p>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <p className="text-sm font-bold" style={{ color: waiter.color }}>{formatPrice(waiter.revenue)}</p>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="h-full flex items-center justify-center text-zinc-500 text-sm">
+                Henüz yeterli veri yok
+              </div>
             )}
           </div>
         </div>

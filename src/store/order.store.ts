@@ -1,6 +1,6 @@
 import { create } from "zustand";
-import { persist, createJSONStorage } from "zustand/middleware";
-import { MockOrderItem } from "@/lib/mock-data";
+
+import { MockOrderItem, MOCK_PRODUCTS } from "@/lib/mock-data";
 import { db } from "@/lib/firebase/config";
 import { collection, doc, setDoc, updateDoc, onSnapshot, query, orderBy, serverTimestamp, Timestamp } from "firebase/firestore";
 
@@ -33,18 +33,6 @@ export type ServiceRequest = {
   restaurantId?: string;
 };
 
-const safeStorage = {
-  getItem: (name: string) => {
-    try { return localStorage.getItem(name); } catch { return null; }
-  },
-  setItem: (name: string, value: string) => {
-    try { localStorage.setItem(name, value); } catch {}
-  },
-  removeItem: (name: string) => {
-    try { localStorage.removeItem(name); } catch {}
-  },
-};
-
 type OrderStore = {
   orders: FirestoreOrder[];
   serviceRequests: ServiceRequest[];
@@ -53,7 +41,8 @@ type OrderStore = {
     tableNumber: number,
     items: MockOrderItem[],
     totalAmount: number,
-    notes?: string
+    notes?: string,
+    waiterName?: string
   ) => Promise<string>;
   updateOrderStatus: (orderId: string, status: OrderStatus, waiterName?: string) => Promise<void>;
   cancelOrder: (orderId: string) => Promise<void>;
@@ -69,6 +58,12 @@ type OrderStore = {
   requestService: (tableNumber: number, type: ServiceRequestType) => Promise<void>;
   resolveServiceRequest: (id: string) => Promise<void>;
 
+  // Müşteri (Alman Usulü) Kısmi Ödeme
+  payForTableItems: (tableNumber: number, paidItems: { productId: string; quantity: number; unitPrice: number; name: string }[]) => Promise<void>;
+
+  // KDS İstasyon Bazlı Öğeyi Hazır İşaretleme
+  toggleOrderItemStatus: (orderId: string, itemId: string) => Promise<void>;
+
   // Admin Realtime Listeners
   listenToOrders: () => () => void; // returns unsubscribe function
   listenToServiceRequests: () => () => void;
@@ -77,22 +72,32 @@ type OrderStore = {
   submitReview: (orderId: string, tableNumber: number, rating: number, comment?: string) => Promise<void>;
 };
 
-export const useOrderStore = create<OrderStore>()(
-  persist(
-    (set, get) => ({
+export const useOrderStore = create<OrderStore>((set, get) => ({
       orders: [],
       serviceRequests: [],
 
-      placeOrder: async (tableNumber, items, totalAmount, notes) => {
+      placeOrder: async (tableNumber, items, totalAmount, notes, waiterName) => {
         const orderId = `order_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
-        const newOrder = {
+        
+        const enrichedItems = items.map((item, index) => {
+          const product = MOCK_PRODUCTS.find(p => p.id === item.productId);
+          return {
+            ...item,
+            id: `${orderId}_item_${index}`,
+            status: item.status || "PENDING",
+            categoryId: product?.categoryId || item.categoryId
+          };
+        });
+
+        const newOrder: Record<string, unknown> = {
           id: orderId,
           tableNumber,
           status: "PENDING" as OrderStatus,
           totalAmount,
           createdAt: serverTimestamp(),
-          items,
+          items: enrichedItems,
           notes: notes || "",
+          waiterName: waiterName || "",
           restaurantId: "rest_demo_001", // hardcoded for now
           source: "DINE_IN" as OrderSource,
         };
@@ -119,13 +124,16 @@ export const useOrderStore = create<OrderStore>()(
         ];
         
         const count = Math.floor(Math.random() * 3) + 1;
-        const items = Array.from({ length: count }, () => {
+        const items = Array.from({ length: count }, (_, idx) => {
           const sample = SAMPLE_ITEMS[Math.floor(Math.random() * SAMPLE_ITEMS.length)];
           return {
+            id: `${orderId}_item_${idx}`,
             productId: `prod_${Math.random()}`,
             name: sample.name,
             quantity: Math.floor(Math.random() * 2) + 1,
             unitPrice: sample.price,
+            status: "PENDING",
+            categoryId: "cat_yiyecek_001" // dummy category for mock
           };
         });
         
@@ -210,6 +218,43 @@ export const useOrderStore = create<OrderStore>()(
         }
       },
 
+      toggleOrderItemStatus: async (orderId, itemId) => {
+        const state = get();
+        const order = state.orders.find(o => o.id === orderId);
+        if (!order) return;
+
+        // itemId may be undefined or non-unique; also support index-based toggle
+        // We look up by id first, fallback to nothing (handled by caller using index)
+        const newItems = order.items.map((item, idx) => {
+          const matchById = item.id && item.id === itemId;
+          // itemId may encode the index as "__idx__N" for robustness
+          const matchByIdx = itemId?.startsWith("__idx__") && parseInt(itemId.replace("__idx__", "")) === idx;
+          if (matchById || matchByIdx) {
+            return { ...item, status: item.status === "COMPLETED" ? "PENDING" as const : "COMPLETED" as const };
+          }
+          return item;
+        });
+
+        const allCompleted = newItems.every(i => i.status === "COMPLETED");
+        const newStatus = allCompleted ? "COMPLETED" : "PREPARING";
+
+        try {
+          const updateData: Record<string, unknown> = { items: newItems, status: newStatus };
+          if (allCompleted) {
+            updateData.completedAt = serverTimestamp();
+          }
+
+          await updateDoc(doc(db, "orders", orderId), updateData);
+          set((state) => ({
+            orders: state.orders.map((o) =>
+              o.id === orderId ? { ...o, items: newItems, status: newStatus as OrderStatus, ...(allCompleted ? { completedAt: new Date() } : {}) } : o
+            ),
+          }));
+        } catch (error) {
+          console.error("Error toggling item status:", error);
+        }
+      },
+
       changeOrderTable: async (orderId, newTableNumber) => {
         try {
           await updateDoc(doc(db, "orders", orderId), { tableNumber: newTableNumber });
@@ -277,6 +322,84 @@ export const useOrderStore = create<OrderStore>()(
         }
       },
 
+      payForTableItems: async (tableNumber, paidItems) => {
+        const state = get();
+        const activeOrders = state.orders.filter(
+          (o) => o.tableNumber === tableNumber && o.status !== "PAID" && o.status !== "CANCELLED"
+        );
+        
+        if (activeOrders.length === 0 || paidItems.length === 0) return;
+
+        let totalPaidAmount = 0;
+        const paidItemsToStore: MockOrderItem[] = [];
+        const remainingItemsMap = new Map(paidItems.map(p => [p.productId, p.quantity]));
+
+        // Subtract paid items from active orders
+        for (const order of activeOrders) {
+          let orderChanged = false;
+          let newTotal = 0;
+          const newItems: MockOrderItem[] = [];
+
+          for (const item of order.items) {
+            const qtyToPay = remainingItemsMap.get(item.productId) || 0;
+            if (qtyToPay > 0) {
+              const deduction = Math.min(item.quantity, qtyToPay);
+              remainingItemsMap.set(item.productId, qtyToPay - deduction);
+              
+              paidItemsToStore.push({
+                ...item,
+                quantity: deduction,
+                id: `paid_${Date.now()}_${Math.random()}`
+              });
+              totalPaidAmount += deduction * item.unitPrice;
+
+              if (item.quantity > deduction) {
+                newItems.push({ ...item, quantity: item.quantity - deduction });
+                newTotal += (item.quantity - deduction) * item.unitPrice;
+              }
+              orderChanged = true;
+            } else {
+              newItems.push(item);
+              newTotal += item.quantity * item.unitPrice;
+            }
+          }
+
+          if (orderChanged) {
+            try {
+              if (newItems.length === 0) {
+                await updateDoc(doc(db, "orders", order.id), { status: "PAID", completedAt: serverTimestamp(), items: [], totalAmount: 0 });
+              } else {
+                await updateDoc(doc(db, "orders", order.id), { items: newItems, totalAmount: newTotal });
+              }
+            } catch (error) {
+              console.error("Error updating partially paid order:", error);
+            }
+          }
+        }
+
+        // Create a new PAID order for the paid items to keep history clean
+        if (paidItemsToStore.length > 0) {
+          const orderId = `order_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+          const newOrder: Record<string, unknown> = {
+            id: orderId,
+            tableNumber,
+            status: "PAID" as OrderStatus,
+            totalAmount: totalPaidAmount,
+            createdAt: serverTimestamp(),
+            completedAt: serverTimestamp(),
+            items: paidItemsToStore,
+            notes: "QR Menü Kısmi Ödeme",
+            restaurantId: "rest_demo_001",
+            source: "DINE_IN" as OrderSource,
+          };
+          try {
+            await setDoc(doc(db, "orders", orderId), newOrder);
+          } catch (error) {
+            console.error("Error saving paid items as new order:", error);
+          }
+        }
+      },
+
       submitReview: async (orderId, tableNumber, rating, comment) => {
         const reviewId = `rev_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
         try {
@@ -295,7 +418,7 @@ export const useOrderStore = create<OrderStore>()(
       },
 
       listenToOrders: () => {
-        const q = query(collection(db, "orders"), orderBy("createdAt", "desc"));
+        const q = query(collection(db, "orders"));
         const unsubscribe = onSnapshot(q, (snapshot) => {
           const now = new Date();
           const orders = snapshot.docs.map((doc) => {
@@ -307,13 +430,15 @@ export const useOrderStore = create<OrderStore>()(
               completedAt: data.completedAt ? (data.completedAt as Timestamp).toDate() : undefined,
             } as FirestoreOrder;
           }).filter(o => (now.getTime() - o.createdAt.getTime()) < 12 * 60 * 60 * 1000); // Sadece son 12 saatin siparişlerini tut
+          
+          orders.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
           set({ orders });
         });
         return unsubscribe;
       },
 
       listenToServiceRequests: () => {
-        const q = query(collection(db, "service_requests"), orderBy("createdAt", "desc"));
+        const q = query(collection(db, "service_requests"));
         const unsubscribe = onSnapshot(q, (snapshot) => {
           const requests = snapshot.docs.map((doc) => {
             const data = doc.data();
@@ -323,27 +448,10 @@ export const useOrderStore = create<OrderStore>()(
               createdAt: data.createdAt ? (data.createdAt as Timestamp).toDate() : new Date(),
             } as ServiceRequest;
           });
+          
+          requests.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
           set({ serviceRequests: requests });
         });
         return unsubscribe;
       },
-    }),
-    {
-      name: "restaurant-orders",
-      storage: createJSONStorage(() => safeStorage),
-      onRehydrateStorage: () => (state) => {
-        if (state) {
-          state.orders = state.orders.map((o) => ({
-            ...o,
-            createdAt: new Date(o.createdAt),
-            completedAt: o.completedAt ? new Date(o.completedAt) : undefined,
-          }));
-          state.serviceRequests = (state.serviceRequests || []).map((r) => ({
-            ...r,
-            createdAt: new Date(r.createdAt),
-          }));
-        }
-      },
-    }
-  )
-);
+    }));

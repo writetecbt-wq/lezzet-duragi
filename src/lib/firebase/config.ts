@@ -1,5 +1,5 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
-import { getFirestore } from "firebase/firestore";
+import { getFirestore, enableMultiTabIndexedDbPersistence } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 import { getStorage } from "firebase/storage";
 
@@ -17,6 +17,18 @@ const firebaseConfig = {
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 
 export const db = getFirestore(app);
+
+// Çevrimdışı (Offline) desteği aktifleştir
+if (typeof window !== "undefined") {
+  enableMultiTabIndexedDbPersistence(db).catch((err) => {
+    if (err.code == 'failed-precondition') {
+      console.warn("Firebase Persistence: Birden fazla sekme açık olduğunda çalışmayabilir.");
+    } else if (err.code == 'unimplemented') {
+      console.warn("Firebase Persistence: Tarayıcınız çevrimdışı önbelleği desteklemiyor.");
+    }
+  });
+}
+
 export const auth = getAuth(app);
 export const storage = getStorage(app);
 export default app;

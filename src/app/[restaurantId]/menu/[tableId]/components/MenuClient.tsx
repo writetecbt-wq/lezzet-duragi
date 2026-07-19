@@ -99,8 +99,9 @@ export function MenuClient({ tableNumber }: MenuClientProps) {
             <span className="font-label-caps text-xs tracking-widest text-primary hidden lg:inline-block">({cartCount})</span>
           </button>
         </div>
-        {/* Mobile Cart Icon */}
-        <button onClick={openCart} className="md:hidden hover:opacity-80 transition-opacity flex items-center gap-2">
+        {/* Mobile Nav Icons */}
+        <div className="md:hidden flex items-center gap-4">
+          <button onClick={openCart} className="hover:opacity-80 transition-opacity flex items-center gap-2">
             <div className="relative">
               <ShoppingBag className="text-primary w-6 h-6" />
               {cartCount > 0 && (
@@ -109,7 +110,8 @@ export function MenuClient({ tableNumber }: MenuClientProps) {
                 </span>
               )}
             </div>
-        </button>
+          </button>
+        </div>
       </header>
 
       {/* ── Main Content ── */}
@@ -205,6 +207,7 @@ export function MenuClient({ tableNumber }: MenuClientProps) {
           }}
         />
       )}
+
     </div>
   );
 }

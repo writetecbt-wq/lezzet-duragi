@@ -19,6 +19,14 @@ import {
 import { formatPrice, timeAgo } from "@/lib/mock-data";
 import { QRCodeCanvas } from "qrcode.react";
 
+const WAITERS = [
+  { id: "ahmet",  name: "Ahmet",  color: "#f97316" },
+  { id: "mehmet", name: "Mehmet", color: "#3b82f6" },
+  { id: "ayse",   name: "Ayşe",   color: "#a855f7" },
+  { id: "ali",    name: "Ali",    color: "#22c55e" },
+  { id: "zeynep", name: "Zeynep", color: "#ec4899" },
+];
+
 export function TableMapClient() {
   const { orders, serviceRequests, resolveServiceRequest } = useOrderStore();
   const { totalTables, addTable, removeTable } = useTableStore();
@@ -45,30 +53,32 @@ export function TableMapClient() {
 
     const isOccupied = tableOrders.length > 0;
     const hasRequest = activeRequests.length > 0;
+    const waiterName = tableOrders[0]?.waiterName;
+    const waiter = WAITERS.find((w) => w.name === waiterName || w.id === waiterName);
 
     let bgColor = "bg-green-500/10 border-green-500/30";
     let textColor = "text-green-500";
     let statusLabel = "Boş";
+    let customStyle = {};
 
     if (hasRequest) {
-      bgColor = "bg-red-500/15 border-red-500/50 animate-pulse-slow";
+      bgColor = "bg-red-500/15 border-red-500/50 animate-[pulse_2s_infinite]";
       textColor = "text-red-400";
-      statusLabel = "Garson Bekliyor";
+      statusLabel = "İstek Var";
     } else if (isOccupied) {
-      const isPreparing = tableOrders.some((o) => o.status === "PREPARING");
-      const isPending = tableOrders.some((o) => o.status === "PENDING");
-      if (isPreparing) {
-        bgColor = "bg-blue-500/10 border-blue-500/30";
-        textColor = "text-blue-400";
-        statusLabel = "Hazırlanıyor";
-      } else if (isPending) {
-        bgColor = "bg-amber-500/10 border-amber-500/30";
-        textColor = "text-amber-400";
-        statusLabel = "Sipariş Bekliyor";
+      if (waiter) {
+        bgColor = "";
+        textColor = "";
+        statusLabel = waiter.name;
+        customStyle = {
+          background: `${waiter.color}15`,
+          border: `1px solid ${waiter.color}80`,
+          color: waiter.color,
+        };
       } else {
-        bgColor = "bg-emerald-500/10 border-emerald-500/30";
-        textColor = "text-emerald-400";
-        statusLabel = "Hesap Bekliyor";
+        bgColor = "bg-red-500/20 border-red-500/50";
+        textColor = "text-red-500";
+        statusLabel = "Müşteri Siparişi";
       }
     }
 
@@ -77,9 +87,11 @@ export function TableMapClient() {
       activeRequests,
       isOccupied,
       hasRequest,
+      waiter,
       bgColor,
       textColor,
       statusLabel,
+      customStyle,
     };
   };
 
@@ -171,16 +183,35 @@ export function TableMapClient() {
         </div>
       </div>
 
-      {/* ── Table Grid ── */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-        {tables.map((tableNum) => {
+      {/* ── Table Sections ── */}
+      <div className="flex flex-col gap-8">
+        {[
+          { name: "İç Salon", icon: "🏛️", start: 1, end: 5, bg: "bg-blue-500/5", border: "border-blue-500/20", text: "text-blue-400" },
+          { name: "Teras", icon: "🌇", start: 6, end: 10, bg: "bg-amber-500/5", border: "border-amber-500/20", text: "text-amber-400" },
+          { name: "Bahçe", icon: "🌳", start: 11, end: 999, bg: "bg-emerald-500/5", border: "border-emerald-500/20", text: "text-emerald-400" },
+        ].map(section => {
+          const sectionTables = tables.filter(t => t >= section.start && t <= section.end);
+          if (sectionTables.length === 0) return null;
+
+          return (
+            <div key={section.name} className={cn("rounded-3xl border p-6", section.bg, section.border)}>
+              <div className="flex items-center gap-3 mb-6">
+                <span className="text-2xl">{section.icon}</span>
+                <h3 className={cn("text-xl font-black", section.text)}>{section.name}</h3>
+                <div className="flex-1 border-b border-white/5 mx-4"></div>
+                <span className="text-sm font-bold text-zinc-500">{sectionTables.length} Masa</span>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                {sectionTables.map((tableNum) => {
           const {
             tableOrders,
             activeRequests,
             hasRequest,
+            waiter,
             bgColor,
             textColor,
             statusLabel,
+            customStyle,
           } = getTableState(tableNum);
 
           return (
@@ -190,6 +221,7 @@ export function TableMapClient() {
                 "relative group flex flex-col items-center justify-center aspect-square rounded-3xl border transition-all",
                 bgColor
               )}
+              style={customStyle}
             >
               {/* Badges for active requests */}
               {hasRequest && (
@@ -222,8 +254,9 @@ export function TableMapClient() {
                     "text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full bg-black/40",
                     textColor
                   )}
+                  style={waiter ? { color: waiter.color } : {}}
                 >
-                  {statusLabel}
+                  {waiter ? waiter.name : statusLabel}
                 </div>
 
                 {tableOrders.length > 0 && (
@@ -245,6 +278,10 @@ export function TableMapClient() {
               >
                 <QrCode className="w-3.5 h-3.5" />
               </button>
+            </div>
+          );
+        })}
+              </div>
             </div>
           );
         })}

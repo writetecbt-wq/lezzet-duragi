@@ -3,16 +3,18 @@
 import { useState } from "react";
 import { useOrderStore } from "@/store/order.store";
 import { formatPrice, formatTime } from "@/lib/mock-data";
-import { Wallet, CreditCard, Banknote, History, CheckCircle2 } from "lucide-react";
+import { Wallet, CreditCard, Banknote, History, CheckCircle2, SplitSquareHorizontal } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { KasaBillModal } from "./KasaBillModal";
 
 export function KasaClient() {
   const { orders, updateOrderStatus } = useOrderStore();
   
   // Tab: 'AÇIK' (Bekleyen ödemeler - COMPLETED) | 'GEÇMİŞ' (Alınmış ödemeler - PAID)
   const [activeTab, setActiveTab] = useState<"AÇIK" | "GEÇMİŞ">("AÇIK");
+  const [splitPaymentTable, setSplitPaymentTable] = useState<number | null>(null);
 
-  const pendingPayments = orders.filter(o => o.status === "COMPLETED");
+  const pendingPayments = orders.filter(o => o.status === "COMPLETED" || o.status === "PENDING" || o.status === "PREPARING");
   const paidPayments = orders.filter(o => o.status === "PAID");
 
   const totalPending = pendingPayments.reduce((s, o) => s + o.totalAmount, 0);
@@ -89,6 +91,11 @@ export function KasaClient() {
                 <p className="text-xs text-zinc-400 mt-1">
                   Sipariş: {formatTime(order.createdAt)} • {order.items.length} ürün
                 </p>
+                {order.waiterName && (
+                  <p className="text-xs text-brand-400 mt-0.5 font-medium">
+                    👤 Garson: {order.waiterName.charAt(0).toUpperCase() + order.waiterName.slice(1)}
+                  </p>
+                )}
               </div>
             </div>
 
@@ -97,7 +104,7 @@ export function KasaClient() {
             </div>
 
             {activeTab === "AÇIK" ? (
-              <div className="flex gap-2 w-full md:w-auto">
+              <div className="flex flex-wrap gap-2 w-full md:w-auto">
                 <button
                   onClick={() => handlePayment(order.id, "NAKİT")}
                   className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 rounded-xl text-sm font-semibold transition-all"
@@ -111,6 +118,13 @@ export function KasaClient() {
                 >
                   <CreditCard className="w-4 h-4" />
                   Kredi Kartı
+                </button>
+                <button
+                  onClick={() => setSplitPaymentTable(order.tableNumber)}
+                  className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/20 rounded-xl text-sm font-semibold transition-all"
+                >
+                  <SplitSquareHorizontal className="w-4 h-4" />
+                  Alman Usulü
                 </button>
               </div>
             ) : (
@@ -129,6 +143,12 @@ export function KasaClient() {
         )}
       </div>
 
+      {splitPaymentTable !== null && (
+        <KasaBillModal 
+          tableNumber={splitPaymentTable} 
+          onClose={() => setSplitPaymentTable(null)} 
+        />
+      )}
     </div>
   );
 }

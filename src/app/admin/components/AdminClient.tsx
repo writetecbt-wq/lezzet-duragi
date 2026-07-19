@@ -207,7 +207,7 @@ export function AdminClient() {
   // Stats
   const pending = orders.filter((o) => o.status === "PENDING").length;
   const preparing = orders.filter((o) => o.status === "PREPARING").length;
-  const completed = orders.filter((o) => o.status === "COMPLETED").length;
+  const completed = orders.filter((o) => o.status === "COMPLETED" || o.status === "PAID").length;
   const revenue = orders.filter((o) => o.status === "COMPLETED" || o.status === "DELIVERED" || o.status === "PAID").reduce((s, o) => s + o.totalAmount, 0);
 
   const COLUMNS: OrderStatus[] = ["PENDING", "PREPARING", "ON_THE_WAY", "COMPLETED"];

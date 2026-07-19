@@ -19,224 +19,395 @@ export const MOCK_PRODUCTS = [
   {
     id: "prod_001",
     name: "Izgara Köfte",
-    description: "El yapımı dana köfte, yanında pilav ve mevsim salata ile servis edilir",
+    description: "El yapımı dana köfte, yanında tereyağlı pilav ve mevsim salata ile servis edilir. Özel baharatlarla marine edilmiştir.",
     price: 180,
-    imageUrl: "https://images.unsplash.com/photo-1529042410759-befb1204b468?w=400&q=80",
+    imageUrl: "/images/menu/izgara_kofte.jpg",
     isAvailable: true,
     sortOrder: 1,
     categoryId: "cat_yiyecek_001",
-    tags: ["spicy"],
+    tags: ["acili"],
+    nutrition: { calories: 520, protein: 38, fat: 28, carbs: 32 },
+    ingredients: [
+      { name: "Dana Kıyma", amount: "200g" },
+      { name: "Pirinç Pilavı", amount: "150g" },
+      { name: "Mevsim Salata", amount: "100g" },
+      { name: "Soğan" },
+      { name: "Maydanoz" },
+      { name: "Kimyon" },
+      { name: "Pul Biber" },
+    ],
   },
   {
     id: "prod_002",
     name: "Tavuk Şiş",
-    description: "Marine edilmiş tavuk göğsü, közlenmiş sebzeler ve pilav ile",
+    description: "Özel sosumuzda 24 saat marine edilmiş tavuk göğsü, közlenmiş sebzeler ve tereyağlı pilav ile servis edilir.",
     price: 160,
-    imageUrl: "https://images.unsplash.com/photo-1544025162-d76594d49cd4?w=400&q=80",
+    imageUrl: "/images/menu/tavuk_sis.jpg",
     isAvailable: true,
     sortOrder: 2,
     categoryId: "cat_yiyecek_001",
     tags: [],
+    nutrition: { calories: 440, protein: 42, fat: 14, carbs: 36 },
+    ingredients: [
+      { name: "Tavuk Göğsü", amount: "250g" },
+      { name: "Közlenmiş Biber" },
+      { name: "Közlenmiş Domates" },
+      { name: "Közlenmiş Soğan" },
+      { name: "Pirinç Pilavı", amount: "150g" },
+      { name: "Zeytinyağı" },
+      { name: "Sarımsak" },
+    ],
   },
   {
     id: "prod_003",
     name: "Karışık Pizza",
-    description: "Mozarella, sucuk, mantar, biber ve zeytinli büyük boy leziz pizza",
+    description: "İnce hamurlu, mozarella peyniri, sucuk, mantar, biber ve zeytinli büyük boy fırın pizza. Taş fırında pişirilir.",
     price: 220,
-    imageUrl: "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=400&q=80",
+    imageUrl: "/images/menu/karisik_pizza.jpg",
     isAvailable: true,
     sortOrder: 3,
     categoryId: "cat_yiyecek_001",
-    tags: ["contains-dairy"],
+    tags: ["sut"],
+    nutrition: { calories: 680, protein: 28, fat: 32, carbs: 68 },
+    ingredients: [
+      { name: "Pizza Hamuru" },
+      { name: "Mozarella Peyniri", amount: "120g" },
+      { name: "Sucuk", amount: "60g" },
+      { name: "Mantar", amount: "40g" },
+      { name: "Yeşil Biber" },
+      { name: "Siyah Zeytin" },
+      { name: "Domates Sosu" },
+    ],
   },
   {
     id: "prod_004",
     name: "Mercimek Çorbası",
-    description: "Geleneksel tarif ile pişirilmiş kırmızı mercimek çorbası, limon ile",
+    description: "Geleneksel tarif ile pişirilmiş kırmızı mercimek çorbası. Taze sıkılmış limon ve kızarmış ekmek ile servis edilir.",
     price: 60,
-    imageUrl: "https://images.unsplash.com/photo-1547592180-85f173990554?w=400&q=80",
+    imageUrl: "/images/menu/mercimek_corbasi.jpg",
     isAvailable: true,
     sortOrder: 4,
     categoryId: "cat_yiyecek_001",
-    tags: ["vegan", "gluten-free"],
+    tags: ["vegan", "glutenFree"],
+    nutrition: { calories: 180, protein: 12, fat: 4, carbs: 28 },
+    ingredients: [
+      { name: "Kırmızı Mercimek", amount: "100g" },
+      { name: "Soğan" },
+      { name: "Havuç" },
+      { name: "Patates" },
+      { name: "Zeytinyağı" },
+      { name: "Limon" },
+      { name: "Kimyon" },
+    ],
   },
   {
     id: "prod_005",
     name: "Caesar Salata",
-    description: "Romaine marul, crouton, parmesan peyniri ve özel Caesar sos",
+    description: "Taze romaine marul, ev yapımı crouton, parmesan peyniri rendesi ve özel Caesar sos ile hazırlanır.",
     price: 90,
-    imageUrl: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=400&q=80",
+    imageUrl: "/images/menu/caesar_salata.jpg",
     isAvailable: true,
     sortOrder: 5,
     categoryId: "cat_yiyecek_001",
-    tags: ["vegetarian", "contains-dairy"],
+    tags: ["vejetaryen", "sut"],
+    nutrition: { calories: 320, protein: 14, fat: 22, carbs: 18 },
+    ingredients: [
+      { name: "Romaine Marul", amount: "150g" },
+      { name: "Parmesan Peyniri", amount: "30g" },
+      { name: "Crouton", amount: "40g" },
+      { name: "Caesar Sos", amount: "50ml" },
+      { name: "Zeytinyağı" },
+      { name: "Limon Suyu" },
+    ],
   },
   {
     id: "prod_006",
     name: "Pide (Karışık)",
-    description: "Kaşar peyniri, kıyma ve sebzelerle dolu fırında pişirilmiş pide",
+    description: "Kaşar peyniri, kıyma ve taze sebzelerle dolu, taş fırında pişirilmiş geleneksel Türk pidesi.",
     price: 140,
-    imageUrl: "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=400&q=80",
-    isAvailable: false,
+    imageUrl: "/images/menu/karisik_pide.jpg",
+    isAvailable: true,
     sortOrder: 6,
     categoryId: "cat_yiyecek_001",
-    tags: ["contains-dairy"],
+    tags: ["sut"],
+    nutrition: { calories: 580, protein: 26, fat: 24, carbs: 62 },
+    ingredients: [
+      { name: "Pide Hamuru" },
+      { name: "Kaşar Peyniri", amount: "80g" },
+      { name: "Dana Kıyma", amount: "100g" },
+      { name: "Domates" },
+      { name: "Yeşil Biber" },
+      { name: "Soğan" },
+      { name: "Tereyağı" },
+    ],
   },
   {
     id: "prod_006_2",
     name: "Mantı",
-    description: "Sarımsaklı yoğurt, tereyağlı pul biber sosu ve taze nane ile ev yapımı Kayseri mantısı",
+    description: "Sarımsaklı yoğurt, tereyağlı pul biber sosu ve taze nane ile sunulan ev yapımı Kayseri mantısı. Günlük taze açılır.",
     price: 150,
-    imageUrl: "https://images.unsplash.com/photo-1626200419199-391ae4be7a41?w=400&q=80",
+    imageUrl: "/images/menu/manti.jpg",
     isAvailable: true,
     sortOrder: 7,
     categoryId: "cat_yiyecek_001",
-    tags: ["contains-dairy", "spicy"],
+    tags: ["sut", "acili"],
+    nutrition: { calories: 480, protein: 22, fat: 20, carbs: 52 },
+    ingredients: [
+      { name: "Mantı Hamuru" },
+      { name: "Dana Kıyma", amount: "80g" },
+      { name: "Süzme Yoğurt", amount: "100g" },
+      { name: "Sarımsak" },
+      { name: "Tereyağı" },
+      { name: "Pul Biber" },
+      { name: "Taze Nane" },
+    ],
   },
   {
     id: "prod_006_3",
     name: "Lahmacun (Fındık)",
-    description: "Özel harçlı, çıtır fırın lahmacun. Yanında limon ve yeşillik ile",
+    description: "Özel harçlı, çıtır ince hamurlu fırın lahmacun. Yanında taze limon, maydanoz ve yeşillik ile servis edilir.",
     price: 85,
-    imageUrl: "https://images.unsplash.com/photo-1606850780554-b55ea4ebfabc?w=400&q=80",
+    imageUrl: "/images/menu/lahmacun.jpg",
     isAvailable: true,
     sortOrder: 8,
     categoryId: "cat_yiyecek_001",
-    tags: ["spicy"],
+    tags: ["acili"],
+    nutrition: { calories: 290, protein: 16, fat: 10, carbs: 36 },
+    ingredients: [
+      { name: "İnce Hamur" },
+      { name: "Dana Kıyma", amount: "60g" },
+      { name: "Domates" },
+      { name: "Biber Salçası" },
+      { name: "Soğan" },
+      { name: "Maydanoz" },
+      { name: "Limon" },
+    ],
   },
   {
     id: "prod_006_4",
     name: "Tavuk Kanat",
-    description: "Özel sosta marine edilmiş mangalda tavuk kanat",
+    description: "Özel sosumuzda marine edilmiş, mangalda közlenmiş çıtır tavuk kanatlar. Yanında ranch sos ile servis edilir.",
     price: 170,
-    imageUrl: "https://images.unsplash.com/photo-1608039755401-742074f0548f?w=400&q=80",
+    imageUrl: "/images/menu/tavuk_kanat.jpg",
     isAvailable: true,
     sortOrder: 9,
     categoryId: "cat_yiyecek_001",
-    tags: ["spicy"],
+    tags: ["acili"],
+    nutrition: { calories: 460, protein: 34, fat: 30, carbs: 12 },
+    ingredients: [
+      { name: "Tavuk Kanat", amount: "300g" },
+      { name: "BBQ Sos" },
+      { name: "Sarımsak" },
+      { name: "Tereyağı" },
+      { name: "Pul Biber" },
+      { name: "Susam" },
+      { name: "Ranch Sos", amount: "50ml" },
+    ],
   },
   // ── İçecekler ──
   {
     id: "prod_007",
     name: "Türk Çayı",
-    description: "Demlikten taze çekilen çay, iki bardak",
+    description: "Demlikten taze demlenmiş geleneksel Türk çayı. İnce belli bardakta, iki adet servis edilir.",
     price: 25,
-    imageUrl: "https://images.unsplash.com/photo-1564890369478-c89ca6d9cde9?w=400&q=80",
+    imageUrl: "/images/menu/turk_cayi.jpg",
     isAvailable: true,
     sortOrder: 1,
     categoryId: "cat_icecek_001",
-    tags: ["vegan", "gluten-free"],
+    tags: ["vegan", "glutenFree"],
+    nutrition: { calories: 5, protein: 0, fat: 0, carbs: 1 },
+    ingredients: [
+      { name: "Siyah Çay Yaprağı" },
+      { name: "Kaynar Su" },
+    ],
   },
   {
     id: "prod_008",
     name: "Türk Kahvesi",
-    description: "Geleneksel pişirim, yanında lokum ikramı ile",
+    description: "Geleneksel cezve ile pişirilmiş, bol köpüklü Türk kahvesi. Yanında lokum ikramı ile servis edilir.",
     price: 45,
-    imageUrl: "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=400&q=80",
+    imageUrl: "/images/menu/turk_kahvesi.jpg",
     isAvailable: true,
     sortOrder: 2,
     categoryId: "cat_icecek_001",
-    tags: ["vegan", "gluten-free"],
+    tags: ["vegan", "glutenFree"],
+    nutrition: { calories: 12, protein: 0, fat: 0, carbs: 2 },
+    ingredients: [
+      { name: "Türk Kahvesi", amount: "7g" },
+      { name: "Su", amount: "65ml" },
+      { name: "Lokum", amount: "2 adet" },
+    ],
   },
   {
     id: "prod_009",
     name: "Taze Sıkma Portakal",
-    description: "Günlük taze sıkılmış portakal suyu, 300ml",
+    description: "Günlük taze sıkılmış %100 doğal portakal suyu. Hiçbir katkı maddesi içermez. 300ml bardakta servis edilir.",
     price: 55,
-    imageUrl: "https://images.unsplash.com/photo-1621506289937-a8e4df240d0b?w=400&q=80",
+    imageUrl: "/images/menu/portakal_suyu.jpg",
     isAvailable: true,
     sortOrder: 3,
     categoryId: "cat_icecek_001",
-    tags: ["vegan", "gluten-free"],
+    tags: ["vegan", "glutenFree"],
+    nutrition: { calories: 112, protein: 2, fat: 0, carbs: 26 },
+    ingredients: [
+      { name: "Taze Portakal", amount: "3-4 adet" },
+    ],
   },
   {
     id: "prod_010",
     name: "Limonata",
-    description: "Ev yapımı taze limonata, nane ile servis edilir",
+    description: "Ev yapımı taze limonata, nane yaprakları ve buz ile servis edilir. Doğal şekerle tatlandırılır.",
     price: 50,
-    imageUrl: "https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=400&q=80",
+    imageUrl: "/images/menu/limonata.jpg",
     isAvailable: true,
     sortOrder: 4,
     categoryId: "cat_icecek_001",
-    tags: ["vegan", "gluten-free"],
+    tags: ["vegan", "glutenFree"],
+    nutrition: { calories: 95, protein: 0, fat: 0, carbs: 24 },
+    ingredients: [
+      { name: "Taze Limon Suyu" },
+      { name: "Şeker" },
+      { name: "Taze Nane" },
+      { name: "Buz" },
+      { name: "Su" },
+    ],
   },
   {
     id: "prod_010_2",
     name: "Ayran",
-    description: "Bol köpüklü naneli ev yapımı ayran",
+    description: "Bol köpüklü, naneli ev yapımı geleneksel ayran. Bakır bardakta soğuk servis edilir.",
     price: 35,
     imageUrl: "https://images.unsplash.com/photo-1563227812-0ea4c22e6cc8?w=400&q=80",
     isAvailable: true,
     sortOrder: 5,
     categoryId: "cat_icecek_001",
-    tags: ["vegetarian", "gluten-free", "contains-dairy"],
+    tags: ["vejetaryen", "glutenFree", "sut"],
+    nutrition: { calories: 60, protein: 3, fat: 2, carbs: 5 },
+    ingredients: [
+      { name: "Yoğurt", amount: "150g" },
+      { name: "Su", amount: "100ml" },
+      { name: "Tuz" },
+      { name: "Taze Nane" },
+    ],
   },
   {
     id: "prod_010_3",
     name: "Buzlu Kahve (Iced Latte)",
-    description: "Soğuk süt, buz ve yoğun espresso",
+    description: "Soğuk süt, buz ve çift shot yoğun espresso ile hazırlanan serinletici buzlu kahve.",
     price: 70,
     imageUrl: "https://images.unsplash.com/photo-1517701604599-bb29b565090c?w=400&q=80",
     isAvailable: true,
     sortOrder: 6,
     categoryId: "cat_icecek_001",
-    tags: ["contains-dairy", "vegetarian"],
+    tags: ["sut", "vejetaryen"],
+    nutrition: { calories: 140, protein: 6, fat: 5, carbs: 16 },
+    ingredients: [
+      { name: "Espresso", amount: "çift shot" },
+      { name: "Soğuk Süt", amount: "200ml" },
+      { name: "Buz" },
+      { name: "Vanilya Şurubu (opsiyonel)" },
+    ],
   },
   // ── Tatlılar ──
   {
     id: "prod_011",
     name: "Sütlaç",
-    description: "Fırında üstü kızarmış geleneksel sütlaç, tarçın ile",
+    description: "Fırında üstü altın rengi kızarmış geleneksel sütlaç. Tarçın ile süslenerek soğuk servis edilir.",
     price: 75,
     imageUrl: "https://images.unsplash.com/photo-1488477181946-6428a0291777?w=400&q=80",
     isAvailable: true,
     sortOrder: 1,
     categoryId: "cat_tatli_001",
-    tags: ["vegetarian", "contains-dairy"],
+    tags: ["vejetaryen", "sut"],
+    nutrition: { calories: 280, protein: 8, fat: 10, carbs: 40 },
+    ingredients: [
+      { name: "Süt", amount: "300ml" },
+      { name: "Pirinç", amount: "40g" },
+      { name: "Şeker", amount: "60g" },
+      { name: "Pirinç Unu" },
+      { name: "Vanilya" },
+      { name: "Tarçın" },
+    ],
   },
   {
     id: "prod_012",
     name: "Baklava",
-    description: "Antep fıstıklı, tereyağlı özel baklava, 4 dilim",
+    description: "Antep fıstıklı, tereyağlı, ince yufka katlarıyla hazırlanan özel el yapımı baklava. 4 dilim servis edilir.",
     price: 120,
     imageUrl: "https://images.unsplash.com/photo-1519676867240-f03562e64548?w=400&q=80",
     isAvailable: true,
     sortOrder: 2,
     categoryId: "cat_tatli_001",
-    tags: ["vegetarian", "contains-nuts", "contains-dairy"],
+    tags: ["vejetaryen", "fistik", "sut"],
+    nutrition: { calories: 420, protein: 8, fat: 24, carbs: 48 },
+    ingredients: [
+      { name: "Yufka", amount: "40 kat" },
+      { name: "Antep Fıstığı", amount: "60g" },
+      { name: "Tereyağı", amount: "40g" },
+      { name: "Şeker Şerbeti" },
+      { name: "Limon Suyu" },
+    ],
   },
   {
     id: "prod_013",
     name: "Cheesecake",
-    description: "New York usulü cheesecake, çilek sosu ile",
+    description: "New York usulü kremsi cheesecake, ev yapımı çilek sosu ve taze meyveler ile servis edilir.",
     price: 95,
     imageUrl: "https://images.unsplash.com/photo-1533134242443-d4fd215305ad?w=400&q=80",
     isAvailable: true,
     sortOrder: 3,
     categoryId: "cat_tatli_001",
-    tags: ["vegetarian", "contains-dairy"],
+    tags: ["vejetaryen", "sut"],
+    nutrition: { calories: 380, protein: 6, fat: 26, carbs: 32 },
+    ingredients: [
+      { name: "Krem Peyniri", amount: "150g" },
+      { name: "Bisküvi Tabanı" },
+      { name: "Şeker" },
+      { name: "Yumurta" },
+      { name: "Vanilya" },
+      { name: "Çilek Sosu" },
+    ],
   },
   {
     id: "prod_014",
     name: "Künefe",
-    description: "Hatay usulü, özel peynirli ve şerbetli sıcak künefe. Dondurma ile servis edilir.",
+    description: "Hatay usulü, özel tel kadayıf peyniri ile hazırlanan sıcak künefe. Antep fıstığı ve kaymak ile servis edilir.",
     price: 130,
     imageUrl: "https://images.unsplash.com/photo-1628181343729-1ee06775f0a0?w=400&q=80",
     isAvailable: true,
     sortOrder: 4,
     categoryId: "cat_tatli_001",
-    tags: ["vegetarian", "contains-dairy"],
+    tags: ["vejetaryen", "sut"],
+    nutrition: { calories: 450, protein: 12, fat: 22, carbs: 52 },
+    ingredients: [
+      { name: "Tel Kadayıf" },
+      { name: "Künefe Peyniri", amount: "100g" },
+      { name: "Tereyağı", amount: "30g" },
+      { name: "Şeker Şerbeti" },
+      { name: "Antep Fıstığı" },
+      { name: "Kaymak (opsiyonel)" },
+    ],
   },
   {
     id: "prod_015",
     name: "Tiramisu",
-    description: "Gerçek İtalyan mascarpone peyniri ve espresso ile",
+    description: "Gerçek İtalyan mascarpone peyniri, yoğun espresso ve kakao ile katman katman hazırlanan tiramisu.",
     price: 110,
     imageUrl: "https://images.unsplash.com/photo-1571115177098-24de5004cb77?w=400&q=80",
     isAvailable: true,
     sortOrder: 5,
     categoryId: "cat_tatli_001",
-    tags: ["vegetarian", "contains-dairy"],
+    tags: ["vejetaryen", "sut"],
+    nutrition: { calories: 350, protein: 6, fat: 20, carbs: 36 },
+    ingredients: [
+      { name: "Mascarpone Peyniri", amount: "120g" },
+      { name: "Lady Finger Bisküvi" },
+      { name: "Espresso" },
+      { name: "Yumurta" },
+      { name: "Şeker" },
+      { name: "Kakao Tozu" },
+      { name: "Amaretto (opsiyonel)" },
+    ],
   },
 ];
 
@@ -250,14 +421,22 @@ export type MockProduct = {
   price: number;
   imageUrl?: string;
   isAvailable: boolean;
-  tags?: ("vegan" | "vegetarian" | "gluten-free" | "contains-dairy" | "contains-nuts" | "spicy")[];
+  tags?: ("vegan" | "vejetaryen" | "glutenFree" | "laktosuzFree" | "acili" | "fistik" | "sut" | "yumurta" | "denizUrunu")[];
+  nutrition?: { calories: number; protein: number; fat: number; carbs: number };
+  ingredients?: { name: string; amount?: string }[];
 };
 
 export type MockOrderItem = {
+  id?: string;
   productId: string;
   name: string;
   quantity: number;
   unitPrice: number;
+  price?: number;
+  totalPrice?: number;
+  note?: string;
+  status?: "PENDING" | "PREPARING" | "ON_THE_WAY" | "DELIVERED" | "COMPLETED" | "CANCELLED";
+  categoryId?: string;
 };
 
 export type MockOrder = {
@@ -267,111 +446,82 @@ export type MockOrder = {
   totalAmount: number;
   createdAt: Date;
   completedAt?: Date;
-  notes?: string;
-  items: MockOrderItem[];
   waiterName?: string;
+  items: MockOrderItem[];
+  notes?: string;
 };
 
 export const MOCK_ORDERS: MockOrder[] = [
   {
-    id: "order_001",
+    id: "ord_001",
     tableNumber: 3,
-    status: "PENDING",
-    totalAmount: 445,
-    createdAt: new Date(Date.now() - 3 * 60 * 1000),
-    notes: "Köfteler az pişmiş olsun lütfen",
+    status: "PREPARING",
+    totalAmount: 340,
+    createdAt: new Date(Date.now() - 1000 * 60 * 15),
     items: [
-      { productId: "prod_001", name: "Izgara Köfte", quantity: 2, unitPrice: 180 },
-      { productId: "prod_007", name: "Türk Çayı", quantity: 2, unitPrice: 25 },
-      { productId: "prod_004", name: "Mercimek Çorbası", quantity: 1, unitPrice: 60 },
+      { productId: "prod_001", name: "Izgara Köfte", quantity: 1, unitPrice: 180, price: 180, totalPrice: 180 },
+      { productId: "prod_002", name: "Tavuk Şiş", quantity: 1, unitPrice: 160, price: 160, totalPrice: 160 },
     ],
   },
   {
-    id: "order_002",
+    id: "ord_002",
     tableNumber: 7,
-    status: "PREPARING",
-    totalAmount: 330,
-    createdAt: new Date(Date.now() - 12 * 60 * 1000),
+    status: "PENDING",
+    totalAmount: 520,
+    createdAt: new Date(Date.now() - 1000 * 60 * 5),
     items: [
-      { productId: "prod_003", name: "Karışık Pizza", quantity: 1, unitPrice: 220 },
-      { productId: "prod_010", name: "Limonata", quantity: 2, unitPrice: 50 },
-    ],
-  },
-  {
-    id: "order_003",
-    tableNumber: 1,
-    status: "PREPARING",
-    totalAmount: 215,
-    createdAt: new Date(Date.now() - 8 * 60 * 1000),
-    items: [
-      { productId: "prod_002", name: "Tavuk Şiş", quantity: 1, unitPrice: 160 },
-      { productId: "prod_008", name: "Türk Kahvesi", quantity: 1, unitPrice: 45 },
-    ],
-  },
-  {
-    id: "order_004",
-    tableNumber: 5,
-    status: "COMPLETED",
-    totalAmount: 290,
-    createdAt: new Date(Date.now() - 35 * 60 * 1000),
-    items: [
-      { productId: "prod_005", name: "Caesar Salata", quantity: 2, unitPrice: 90 },
-      { productId: "prod_011", name: "Sütlaç", quantity: 1, unitPrice: 75 },
-      { productId: "prod_007", name: "Türk Çayı", quantity: 1, unitPrice: 25 },
-    ],
-  },
-  {
-    id: "order_005",
-    tableNumber: 9,
-    status: "COMPLETED",
-    totalAmount: 165,
-    createdAt: new Date(Date.now() - 55 * 60 * 1000),
-    items: [
-      { productId: "prod_011", name: "Sütlaç", quantity: 1, unitPrice: 75 },
-      { productId: "prod_013", name: "Cheesecake", quantity: 1, unitPrice: 95 },
+      { productId: "prod_003", name: "Karışık Pizza", quantity: 2, unitPrice: 220, price: 220, totalPrice: 440 },
+      { productId: "prod_004", name: "Mercimek Çorbası", quantity: 1, unitPrice: 60, price: 60, totalPrice: 60 },
+      { productId: "prod_007", name: "Türk Çayı", quantity: 1, unitPrice: 25, price: 25, totalPrice: 25 },
     ],
   },
 ];
 
-// ─── Helpers ───────────────────────────────────────────────────────────────
+// ─── Cart Items ──────────────────────────────────────────────────────────
 
-export function getProductsByCategory(categoryId: string) {
-  return MOCK_PRODUCTS.filter((p) => p.categoryId === categoryId);
-}
+export const MOCK_CART_ITEMS: CartItem[] = [];
+
+// ─── Utility ─────────────────────────────────────────────────────────────
 
 export function formatPrice(price: number): string {
-  return new Intl.NumberFormat("tr-TR", {
-    style: "currency",
-    currency: "TRY",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(price);
+  return `${price.toLocaleString("tr-TR")} ₺`;
 }
 
-export function timeAgo(date: Date): string {
-  const seconds = Math.floor((Date.now() - date.getTime()) / 1000);
-  if (seconds < 60) return `${seconds} sn önce`;
-  const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) return `${minutes} dk önce`;
-  const hours = Math.floor(minutes / 60);
-  return `${hours} sa önce`;
+export function timeAgo(date: Date | string | number): string {
+  const now = new Date();
+  const d = date instanceof Date ? date : new Date(date);
+  const diffMs = now.getTime() - d.getTime();
+  const diffMin = Math.floor(diffMs / 60000);
+  
+  if (diffMin < 1) return "Az önce";
+  if (diffMin < 60) return `${diffMin} dk önce`;
+  
+  const diffHour = Math.floor(diffMin / 60);
+  if (diffHour < 24) return `${diffHour} saat önce`;
+  
+  const diffDay = Math.floor(diffHour / 24);
+  return `${diffDay} gün önce`;
 }
 
-export function formatTime(date: Date): string {
-  return date.toLocaleTimeString("tr-TR", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+export function formatTime(date: Date | string | number): string {
+  const d = date instanceof Date ? date : new Date(date);
+  return d.toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" });
 }
 
-export function getOrderDuration(createdAt: Date, completedAt?: Date): string {
-  const end = completedAt || new Date();
-  const diffMs = end.getTime() - createdAt.getTime();
-  const minutes = Math.floor(diffMs / 60000);
-  if (minutes < 1) return "< 1 dk";
-  if (minutes < 60) return `${minutes} dk`;
-  const hours = Math.floor(minutes / 60);
-  const remainingMin = minutes % 60;
-  return `${hours} sa ${remainingMin} dk`;
+export function getOrderDuration(
+  startDate: Date | string | number,
+  endDate?: Date | string | number
+): string {
+  const start = startDate instanceof Date ? startDate : new Date(startDate);
+  const end = endDate ? (endDate instanceof Date ? endDate : new Date(endDate)) : new Date();
+  const diffMs = end.getTime() - start.getTime();
+  const diffMin = Math.floor(diffMs / 60000);
+
+  if (diffMin < 1) return "< 1 dk";
+  if (diffMin < 60) return `${diffMin} dk`;
+
+  const hours = Math.floor(diffMin / 60);
+  const mins = diffMin % 60;
+  return mins > 0 ? `${hours} sa ${mins} dk` : `${hours} sa`;
 }
 
