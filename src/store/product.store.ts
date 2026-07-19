@@ -83,9 +83,12 @@ export const useProductStore = create<ProductStore>((set, get) => ({
   fetchProductsAndCategories: async () => {
     set({ isLoading: true });
     try {
-      const [productsSnap, categoriesSnap] = await Promise.all([
-        getDocs(collection(db, "products")),
-        getDocs(collection(db, "categories"))
+      const [productsSnap, categoriesSnap] = await Promise.race([
+        Promise.all([
+          getDocs(collection(db, "products")),
+          getDocs(collection(db, "categories"))
+        ]),
+        new Promise<any>((_, reject) => setTimeout(() => reject(new Error("Timeout fetching from Firebase")), 5000))
       ]);
 
       const products = productsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));

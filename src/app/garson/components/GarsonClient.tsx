@@ -33,7 +33,7 @@ export function GarsonClient() {
     listenToOrders, listenToServiceRequests,
     updateOrderItems, changeOrderTable, updateOrderStatus,
   } = useOrderStore();
-  const { products, fetchProductsAndCategories, categories } = useProductStore();
+  const { products, fetchProductsAndCategories, categories, isLoading } = useProductStore();
   const { totalTables } = useTableStore();
 
   const savedWaiterId = typeof window !== "undefined" ? localStorage.getItem("activeWaiterId") : null;
@@ -384,7 +384,12 @@ export function GarsonClient() {
         </div>
 
         {/* Products */}
-        {!selectedTable ? (
+        {isLoading ? (
+          <div className="flex-1 flex flex-col items-center justify-center" style={{ color: "#584237" }}>
+            <span className="text-4xl mb-4 text-center w-full flex justify-center opacity-70">⏳</span>
+            <p className="text-lg font-semibold" style={{ color: "#a78b7d" }}>Ürünler Yükleniyor...</p>
+          </div>
+        ) : !selectedTable ? (
           <div className="flex-1 flex flex-col items-center justify-center" style={{ color: "#584237" }}>
             <span className="text-6xl mb-4">🍽️</span>
             <p className="text-lg font-semibold" style={{ color: "#a78b7d" }}>Sol panelden bir masa seçin</p>
