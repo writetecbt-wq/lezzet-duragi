@@ -242,7 +242,7 @@ export function KasaBillModal({ tableNumber, onClose }: KasaBillModalProps) {
             </div>
             <button
               onClick={handlePay}
-              disabled={selectedItems.length === 0 || !paymentMethod || isProcessing}
+              disabled={!hasSelection || !paymentMethod || isProcessing}
               className="px-8 py-4 bg-amber-500 hover:bg-amber-400 text-amber-950 font-black rounded-2xl text-base transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-lg shadow-amber-500/20"
             >
               {isProcessing ? "İşleniyor..." : "Tahsil Et"}
