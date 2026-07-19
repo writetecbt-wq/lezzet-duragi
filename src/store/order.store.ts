@@ -103,7 +103,10 @@ export const useOrderStore = create<OrderStore>((set, get) => ({
         };
 
         try {
-          await setDoc(doc(db, "orders", orderId), newOrder);
+          await Promise.race([
+            setDoc(doc(db, "orders", orderId), newOrder),
+            new Promise<void>((_, reject) => setTimeout(() => reject(new Error("Timeout placing order")), 5000))
+          ]);
           // onSnapshot listener will automatically receive this new order immediately
           return orderId;
         } catch (error) {
