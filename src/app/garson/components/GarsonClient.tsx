@@ -686,6 +686,7 @@ export function GarsonClient() {
 
       {detailTable !== null && (
         <TableDetailModal
+          activeWaiter={activeWaiter}
           tableNumber={detailTable}
           onClose={() => { setDetailTable(null); setEditingOrder(null); setChangingTable(null); }}
           orders={orders}
@@ -727,11 +728,13 @@ export function GarsonClient() {
 // ─── Table Detail Modal ───────────────────────────────────────────────────────
 
 function TableDetailModal({
+  activeWaiter,
   tableNumber, onClose, orders, serviceRequests, resolveServiceRequest,
   editingOrder, setEditingOrder, changingTable, setChangingTable,
   updateOrderItems, changeOrderTable, updateOrderStatus,
   products, categories, totalTables, getTableState, onOpenPayment
 }: {
+  activeWaiter: { id: string, name: string, color: string, initials: string },
   tableNumber: number;
   onClose: () => void;
   orders: FirestoreOrder[];
