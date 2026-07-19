@@ -10,7 +10,7 @@ import {
   Send, Search, ArrowRightLeft, Clock, Utensils, LogOut,
   Bell, X, CheckCircle2, TrendingUp, Trophy, Star
 } from "lucide-react";
-import { formatPrice, timeAgo, formatTime, getOrderDuration, MockOrderItem } from "@/lib/mock-data";
+import { formatPrice, timeAgo, formatTime, getOrderDuration, MockOrderItem, MOCK_PRODUCTS } from "@/lib/mock-data";
 import { OrderEditor } from "@/components/shared/OrderEditor";
 
 // ─── Garsonlar ────────────────────────────────────────────────────────────────

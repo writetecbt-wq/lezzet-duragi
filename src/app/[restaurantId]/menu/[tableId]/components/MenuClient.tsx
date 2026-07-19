@@ -13,7 +13,7 @@ import { useCartStore } from "@/store/cart.store";
 import { useProductStore } from "@/store/product.store";
 import { useTableStore } from "@/store/table.store";
 import { useOrderStore } from "@/store/order.store";
-import { formatPrice, MOCK_CATEGORIES } from "@/lib/mock-data";
+import { formatPrice, MOCK_CATEGORIES, MOCK_PRODUCTS } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
 import { CustomerOrderWidget } from "./CustomerOrderWidget";
 import { ProductDetailModal } from "./ProductDetailModal";
@@ -113,6 +113,11 @@ export function MenuClient({ tableNumber }: MenuClientProps) {
 
       {/* ── Main Content ── */}
       <main className="pt-32 pb-24 max-w-[1400px] mx-auto px-container-margin w-full">
+        {products === MOCK_PRODUCTS && (
+          <div className="mb-4 bg-red-600 text-white text-xs font-bold p-3 rounded-xl text-center animate-pulse">
+            BAĞLANTI HATASI: Tarayıcınız veya internetiniz veritabanına bağlanamıyor! Lütfen reklam engelleyicinizi (AdBlock/Brave) kapatın. Şu an Çevrimdışı (Örnek Veri) modundasınız, siparişleriniz mutfağa iletilmeyecektir.
+          </div>
+        )}
         
         <div className="md:hidden flex gap-4 w-full mb-8 animate-fade-in-up">
           <ServiceRequestButton tableNumber={tableNum} type="WAITER" />

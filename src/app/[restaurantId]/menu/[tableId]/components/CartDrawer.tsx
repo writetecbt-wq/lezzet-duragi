@@ -73,8 +73,9 @@ export function CartDrawer({ tableId, restaurantId }: CartDrawerProps) {
       router.push(
         `/order-confirmed?id=${orderId}&table=${tableId}&restaurant=${restaurantId}&amount=${grandTotal}`
       );
-    } catch (error) {
+    } catch (error: any) {
       console.error("Order error", error);
+      alert("Sipariş gönderilemedi: " + (error?.message || "Bilinmeyen hata"));
     } finally {
       setIsSubmitting(false);
     }
