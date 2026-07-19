@@ -147,7 +147,7 @@ export function MenuClient({ tableNumber }: MenuClientProps) {
           {activeProducts.length === 0 ? (
             <p className="text-center text-on-surface-variant py-20 font-light text-lg">Bu kategoride ürün bulunamadı.</p>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-8">
               {activeProducts.map((product) => {
                 const qty = getItemQuantity(product.id);
                 return (
@@ -229,18 +229,18 @@ function ProductCard({
   const inCart = quantity > 0;
 
   return (
-    <article onClick={onClick} className={cn("group bg-white rounded-2xl p-4 shadow-[0_4px_20px_rgba(0,0,0,0.02)] border border-surface-container hover:shadow-[0_20px_40px_rgba(0,0,0,0.06)] transition-all duration-500 flex flex-col h-full cursor-pointer", !product.isAvailable && "opacity-50 grayscale pointer-events-none")}>
-      <div className="relative aspect-square overflow-hidden rounded-xl mb-6 bg-surface-container-low">
+    <article onClick={onClick} className={cn("group bg-white rounded-2xl p-2.5 md:p-4 shadow-[0_4px_20px_rgba(0,0,0,0.02)] border border-surface-container hover:shadow-[0_20px_40px_rgba(0,0,0,0.06)] transition-all duration-500 flex flex-col h-full cursor-pointer", !product.isAvailable && "opacity-50 grayscale pointer-events-none")}>
+      <div className="relative aspect-square overflow-hidden rounded-xl mb-3 md:mb-6 bg-surface-container-low">
         {inCart && (
-          <div className="absolute top-3 left-3 z-20">
-            <span className="bg-background/90 text-primary font-label-caps text-[10px] tracking-widest uppercase px-3 py-1.5 backdrop-blur-sm shadow-sm rounded-full border border-primary/20">
+          <div className="absolute top-2 left-2 md:top-3 md:left-3 z-20">
+            <span className="bg-background/90 text-primary font-label-caps text-[8px] md:text-[10px] tracking-widest uppercase px-2 py-1 md:px-3 md:py-1.5 backdrop-blur-sm shadow-sm rounded-full border border-primary/20">
               {quantity} Adet Eklendi
             </span>
           </div>
         )}
         {!product.isAvailable && (
           <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-10">
-            <span className="text-white font-label-caps tracking-[0.2em] uppercase">Tükendi</span>
+            <span className="text-white font-label-caps tracking-[0.2em] uppercase text-xs md:text-sm">Tükendi</span>
           </div>
         )}
         {product.imageUrl && !imgError ? (
@@ -253,38 +253,38 @@ function ProductCard({
             loading="lazy"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-4xl opacity-50 transition-transform duration-700 group-hover:scale-105">🍽️</div>
+          <div className="w-full h-full flex items-center justify-center text-3xl md:text-4xl opacity-50 transition-transform duration-700 group-hover:scale-105">🍽️</div>
         )}
         
         {product.isAvailable && (
           inCart ? (
-            <div className="absolute bottom-4 right-4 bg-background text-primary rounded-full shadow-xl flex items-center overflow-hidden border border-primary/20 z-10 transition-all duration-300">
-              <button onClick={(e) => { e.stopPropagation(); onDecrement(); }} className="w-10 h-10 flex items-center justify-center hover:bg-surface-container-low active:bg-surface-container-high transition-colors">
-                <Minus className="w-4 h-4" />
+            <div className="absolute bottom-2 right-2 md:bottom-4 md:right-4 bg-background text-primary rounded-full shadow-xl flex items-center overflow-hidden border border-primary/20 z-10 transition-all duration-300">
+              <button onClick={(e) => { e.stopPropagation(); onDecrement(); }} className="w-7 h-7 md:w-10 md:h-10 flex items-center justify-center hover:bg-surface-container-low active:bg-surface-container-high transition-colors">
+                <Minus className="w-3 h-3 md:w-4 md:h-4" />
               </button>
-              <span className="font-label-caps text-xs font-bold w-4 text-center select-none">{quantity}</span>
-              <button onClick={(e) => { e.stopPropagation(); onIncrement(); }} className="w-10 h-10 flex items-center justify-center hover:bg-surface-container-low active:bg-surface-container-high transition-colors">
-                <Plus className="w-4 h-4" />
+              <span className="font-label-caps text-[10px] md:text-xs font-bold w-3 md:w-4 text-center select-none">{quantity}</span>
+              <button onClick={(e) => { e.stopPropagation(); onIncrement(); }} className="w-7 h-7 md:w-10 md:h-10 flex items-center justify-center hover:bg-surface-container-low active:bg-surface-container-high transition-colors">
+                <Plus className="w-3 h-3 md:w-4 md:h-4" />
               </button>
             </div>
           ) : (
-            <button onClick={(e) => { e.stopPropagation(); onAdd(); }} className="absolute bottom-4 right-4 bg-secondary text-white w-12 h-12 flex items-center justify-center rounded-full opacity-0 lg:group-hover:opacity-100 lg:translate-y-2 lg:group-hover:translate-y-0 opacity-100 translate-y-0 transition-all duration-300 shadow-xl hover:scale-105 active:scale-95 z-10">
-              <Plus className="w-6 h-6" />
+            <button onClick={(e) => { e.stopPropagation(); onAdd(); }} className="absolute bottom-2 right-2 md:bottom-4 md:right-4 bg-secondary text-white w-8 h-8 md:w-12 md:h-12 flex items-center justify-center rounded-full opacity-100 lg:opacity-0 lg:group-hover:opacity-100 lg:translate-y-2 lg:group-hover:translate-y-0 translate-y-0 transition-all duration-300 shadow-xl hover:scale-105 active:scale-95 z-10">
+              <Plus className="w-4 h-4 md:w-6 md:h-6" />
             </button>
           )
         )}
       </div>
 
       <div className="flex flex-col flex-1">
-        <div className="flex justify-between items-start gap-4 mb-2">
-          <h3 className="font-headline-md text-lg md:text-xl text-on-surface line-clamp-2 leading-tight">
+        <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-1 md:gap-4 mb-2">
+          <h3 className="font-headline-md text-sm md:text-xl text-on-surface line-clamp-2 leading-tight">
             {product.name}
           </h3>
-          <span className="font-price-lg text-lg text-secondary whitespace-nowrap">
+          <span className="font-price-lg text-sm md:text-lg text-secondary whitespace-nowrap">
             {formatPrice(product.price)}
           </span>
         </div>
-        <p className="font-body-md text-sm text-on-surface-variant leading-relaxed line-clamp-3 mb-4 flex-1">
+        <p className="font-body-md text-[10px] md:text-sm text-on-surface-variant leading-relaxed line-clamp-2 md:line-clamp-3 mb-2 md:mb-4 flex-1">
           {product.description}
         </p>
         <ProductTags tags={product.tags} />
