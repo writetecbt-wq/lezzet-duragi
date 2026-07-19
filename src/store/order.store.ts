@@ -89,7 +89,7 @@ export const useOrderStore = create<OrderStore>((set, get) => ({
           };
         });
 
-        const newOrder: Record<string, unknown> = {
+        const newOrder = {
           id: orderId,
           tableNumber,
           status: "PENDING" as OrderStatus,
@@ -102,9 +102,24 @@ export const useOrderStore = create<OrderStore>((set, get) => ({
           source: "DINE_IN" as OrderSource,
         };
 
+        // Recursively remove any undefined properties to prevent Firebase Error
+        const cleanUndefined = (obj: any): any => {
+          if (Array.isArray(obj)) return obj.map(cleanUndefined);
+          if (obj !== null && typeof obj === 'object') {
+            return Object.fromEntries(
+              Object.entries(obj)
+                .filter(([_, v]) => v !== undefined)
+                .map(([k, v]) => [k, cleanUndefined(v)])
+            );
+          }
+          return obj;
+        };
+
+        const cleanOrder = cleanUndefined(newOrder);
+
         try {
           await Promise.race([
-            setDoc(doc(db, "orders", orderId), newOrder),
+            setDoc(doc(db, "orders", orderId), cleanOrder),
             new Promise<void>((_, reject) => setTimeout(() => reject(new Error("Timeout placing order")), 5000))
           ]);
           // onSnapshot listener will automatically receive this new order immediately

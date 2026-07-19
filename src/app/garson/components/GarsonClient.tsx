@@ -104,8 +104,8 @@ export function GarsonClient() {
     try {
       await placeOrder(selectedTable, cart, cartTotal, note || undefined, activeWaiter.name);
       setCart([]); setNote("");
-    } catch (error) {
-      alert("Sipariş gönderilemedi. Lütfen internet bağlantınızı kontrol edip tekrar deneyin.");
+    } catch (error: any) {
+      alert("Sipariş gönderilemedi. Hata: " + (error?.message || "Bilinmeyen Hata"));
     } finally { setSending(false); }
   };
 
