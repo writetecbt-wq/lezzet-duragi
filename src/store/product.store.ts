@@ -91,8 +91,8 @@ export const useProductStore = create<ProductStore>((set, get) => ({
         new Promise<any>((_, reject) => setTimeout(() => reject(new Error("Timeout fetching from Firebase")), 5000))
       ]);
 
-      const products = (productsSnap as any).docs.map((doc: any) => ({ id: doc.id, ...doc.data() } as Product));
-      const categories = (categoriesSnap as any).docs.map((doc: any) => ({ id: doc.id, ...doc.data() } as Category));
+      const products: Product[] = (productsSnap as any).docs.map((doc: any) => ({ id: doc.id, ...doc.data() } as Product));
+      const categories: Category[] = (categoriesSnap as any).docs.map((doc: any) => ({ id: doc.id, ...doc.data() } as Category));
 
       if (products.length === 0 || categories.length === 0) {
         console.log("Firestore products or categories empty, falling back to mock data");
