@@ -91,8 +91,8 @@ export const useProductStore = create<ProductStore>((set, get) => ({
       const products = productsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
       const categories = categoriesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Category));
 
-      if (products.length === 0) {
-        console.log("Firestore products empty, falling back to mock data");
+      if (products.length === 0 || categories.length === 0) {
+        console.log("Firestore products or categories empty, falling back to mock data");
         set({ 
           products: MOCK_PRODUCTS as unknown as Product[], 
           categories: MOCK_CATEGORIES as unknown as Category[], 
