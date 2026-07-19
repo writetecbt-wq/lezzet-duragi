@@ -1,5 +1,5 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
-import { getFirestore, enableMultiTabIndexedDbPersistence } from "firebase/firestore";
+import { getFirestore, initializeFirestore } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 import { getStorage } from "firebase/storage";
 
@@ -16,7 +16,10 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 
-export const db = getFirestore(app);
+// Force long polling to bypass aggressive corporate firewalls, ad blockers, or WebSocket issues
+export const db = initializeFirestore(app, {
+  experimentalForceLongPolling: true,
+});
 
 // Offline persistence is disabled to prevent WebSocket deadlocks in multiple tabs
 
