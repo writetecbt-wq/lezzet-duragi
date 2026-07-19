@@ -709,7 +709,7 @@ function TableDetailModal({
   tableNumber, onClose, orders, serviceRequests, resolveServiceRequest,
   editingOrder, setEditingOrder, changingTable, setChangingTable,
   updateOrderItems, changeOrderTable, updateOrderStatus,
-  products, categories, totalTables, getTableState,
+  products, categories, totalTables, getTableState, onOpenPayment
 }: {
   tableNumber: number;
   onClose: () => void;
