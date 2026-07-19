@@ -18,16 +18,8 @@ const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 
 export const db = getFirestore(app);
 
-// Çevrimdışı (Offline) desteği aktifleştir
-if (typeof window !== "undefined") {
-  enableMultiTabIndexedDbPersistence(db).catch((err) => {
-    if (err.code == 'failed-precondition') {
-      console.warn("Firebase Persistence: Birden fazla sekme açık olduğunda çalışmayabilir.");
-    } else if (err.code == 'unimplemented') {
-      console.warn("Firebase Persistence: Tarayıcınız çevrimdışı önbelleği desteklemiyor.");
-    }
-  });
-}
+// Offline persistence is disabled to prevent WebSocket deadlocks in multiple tabs
+
 
 export const auth = getAuth(app);
 export const storage = getStorage(app);
