@@ -76,9 +76,6 @@ export function MenuClient({ tableNumber }: MenuClientProps) {
       {/* ── TopAppBar ── */}
       <header className="fixed top-0 left-0 right-0 z-50 glass-crystal flex justify-between items-center px-container-margin py-6 w-full shadow-[0_4px_30px_rgba(0,0,0,0.03)] border-b border-surface-container-high/50">
         <div className="flex items-center gap-6">
-          <button className="hover:opacity-80 transition-opacity active:scale-95 transition-transform duration-200 lg:hidden text-primary">
-            <MenuIcon className="w-6 h-6" />
-          </button>
           <h1 className="font-display text-2xl md:text-3xl tracking-[0.2em] text-primary uppercase select-none">Epicurean</h1>
         </div>
         <div className="hidden md:flex items-center gap-10">
