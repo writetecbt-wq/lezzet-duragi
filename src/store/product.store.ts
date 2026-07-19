@@ -91,6 +91,16 @@ export const useProductStore = create<ProductStore>((set, get) => ({
       const products = productsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
       const categories = categoriesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Category));
 
+      if (products.length === 0) {
+        console.log("Firestore products empty, falling back to mock data");
+        set({ 
+          products: MOCK_PRODUCTS as unknown as Product[], 
+          categories: MOCK_CATEGORIES as unknown as Category[], 
+          isLoading: false 
+        });
+        return;
+      }
+
       // Sort by sortOrder
       products.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
       categories.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
