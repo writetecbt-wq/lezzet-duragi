@@ -116,6 +116,7 @@ export const useOrderStore = create<OrderStore>((set, get) => ({
         };
 
         const cleanOrder = cleanUndefined(newOrder);
+        cleanOrder.createdAt = serverTimestamp();
 
         try {
           await Promise.race([
