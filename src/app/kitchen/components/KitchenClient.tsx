@@ -2,8 +2,9 @@
 
 import { useEffect, useState, useRef } from "react";
 import { useOrderStore, FirestoreOrder } from "@/store/order.store";
-import { Clock, ChefHat, CheckCircle2, MessageSquareWarning, Coffee, Utensils, CheckSquare, Square, BellRing, BellOff } from "lucide-react";
+import { Clock, ChefHat, CheckCircle2, MessageSquareWarning, Coffee, Utensils, CheckSquare, Square, BellRing, BellOff, Printer } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { getPrinters, printKitchenReceipt } from "@/lib/qz-service";
 
 type Station = "ALL" | "KITCHEN" | "BAR";
 
@@ -210,6 +211,37 @@ export function KitchenClient() {
   const [soundEnabled, setSoundEnabled] = useState(true);
   const prevPendingCountRef = useRef(0);
 
+  // --- QZ Tray State ---
+  const [printers, setPrinters] = useState<string[]>([]);
+  const [selectedPrinter, setSelectedPrinter] = useState<string>("");
+  const [qzConnected, setQzConnected] = useState(false);
+  const printedOrdersRef = useRef<Set<string>>(new Set());
+
+  // Connect to QZ Tray and Load Printers
+  useEffect(() => {
+    const initQZ = async () => {
+      try {
+        const availablePrinters = await getPrinters();
+        if (availablePrinters.length > 0) {
+          setPrinters(availablePrinters);
+          setQzConnected(true);
+          const saved = localStorage.getItem("kitchen_printer");
+          if (saved && availablePrinters.includes(saved)) {
+            setSelectedPrinter(saved);
+          }
+        }
+      } catch (err) {
+        console.error("QZ initialization failed", err);
+      }
+    };
+    initQZ();
+  }, []);
+
+  const handleSelectPrinter = (p: string) => {
+    setSelectedPrinter(p);
+    localStorage.setItem("kitchen_printer", p);
+  };
+
   useEffect(() => {
     const unsub = listenToOrders();
     return () => unsub();
@@ -225,6 +257,23 @@ export function KitchenClient() {
     if (count > prevPendingCountRef.current && soundEnabled) playDingSound();
     prevPendingCountRef.current = count;
   }, [rawKitchenOrders, soundEnabled]);
+
+  // Auto-Print new orders
+  useEffect(() => {
+    if (!qzConnected || !selectedPrinter) return;
+
+    rawKitchenOrders.forEach(async (order) => {
+      // Only print if it's PENDING and we haven't printed it yet
+      if (order.status === "PENDING" && !printedOrdersRef.current.has(order.id)) {
+        try {
+          await printKitchenReceipt(selectedPrinter, order);
+          printedOrdersRef.current.add(order.id);
+        } catch (err) {
+          console.error("Failed to print order", order.id, err);
+        }
+      }
+    });
+  }, [rawKitchenOrders, qzConnected, selectedPrinter]);
 
   const filteredOrders = rawKitchenOrders.map(order => {
     const filteredItems = order.items.filter(item => {
@@ -266,6 +315,31 @@ export function KitchenClient() {
             </button>
           ))}
         </div>
+
+        {/* Printer Selector */}
+        <div className="absolute right-[80px] flex items-center gap-2">
+          {qzConnected ? (
+            <div className="flex items-center gap-2">
+              <Printer className="w-5 h-5 text-green-500" />
+              <select
+                className="bg-[#1c1c22] border border-white/10 text-zinc-300 text-sm rounded-lg px-2 py-1.5 focus:outline-none focus:border-amber-500"
+                value={selectedPrinter}
+                onChange={(e) => handleSelectPrinter(e.target.value)}
+              >
+                <option value="">Yazıcı Seçin...</option>
+                {printers.map(p => (
+                  <option key={p} value={p}>{p}</option>
+                ))}
+              </select>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2 opacity-50" title="QZ Tray bağlantısı bekleniyor...">
+              <Printer className="w-5 h-5 text-zinc-500" />
+              <span className="text-xs font-bold text-zinc-500 bg-white/5 px-2 py-1 rounded">Yazıcı Bağlanıyor</span>
+            </div>
+          )}
+        </div>
+
         <button
           onClick={() => setSoundEnabled(v => !v)}
           className={cn(
