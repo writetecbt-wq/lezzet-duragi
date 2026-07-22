@@ -94,6 +94,7 @@ export const printKitchenReceipt = async (printerName: string, order: FirestoreO
     margins: 0,
     size: { width: 3, height: 10 },
     units: 'in',
+    colorType: 'blackwhite' // Siyah-beyaz zorlaması
   });
 
   const data = [
