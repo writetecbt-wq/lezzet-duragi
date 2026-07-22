@@ -16,11 +16,11 @@ import { OrderEditor } from "@/components/shared/OrderEditor";
 // ─── Garsonlar ────────────────────────────────────────────────────────────────
 
 const WAITERS = [
-  { id: "ahmet",  name: "Ahmet",  initials: "AH", color: "#f97316", image: "/avatars/waiter_ahmet_1784281554408.jpg" },
-  { id: "mehmet", name: "Mehmet", initials: "ME", color: "#3b82f6", image: "/avatars/waiter_mehmet_1784281562453.jpg" },
-  { id: "ayse",   name: "Ayşe",   initials: "AY", color: "#a855f7", image: "/avatars/waiter_ayse_1784281571557.jpg" },
-  { id: "ali",    name: "Ali",    initials: "AL", color: "#22c55e", image: "/avatars/waiter_ali_1784281579636.jpg" },
-  { id: "zeynep", name: "Zeynep", initials: "ZE", color: "#ec4899", image: "/avatars/waiter_zeynep_1784281589065.jpg" },
+  { id: "ahmet",  name: "Ahmet",  initials: "AH", color: "#f97316", pin: "1234", image: "/avatars/waiter_ahmet_1784281554408.jpg" },
+  { id: "mehmet", name: "Mehmet", initials: "ME", color: "#3b82f6", pin: "5678", image: "/avatars/waiter_mehmet_1784281562453.jpg" },
+  { id: "ayse",   name: "Ayşe",   initials: "AY", color: "#a855f7", pin: "0000", image: "/avatars/waiter_ayse_1784281571557.jpg" },
+  { id: "ali",    name: "Ali",    initials: "AL", color: "#22c55e", pin: "1111", image: "/avatars/waiter_ali_1784281579636.jpg" },
+  { id: "zeynep", name: "Zeynep", initials: "ZE", color: "#ec4899", pin: "2222", image: "/avatars/waiter_zeynep_1784281589065.jpg" },
 ];
 
 // ─── Main Component ───────────────────────────────────────────────────────────
@@ -39,6 +39,9 @@ export function GarsonClient() {
   const savedWaiterId = typeof window !== "undefined" ? localStorage.getItem("activeWaiterId") : null;
   const [activeWaiter, setActiveWaiter]     = useState(WAITERS.find(w => w.id === savedWaiterId) ?? WAITERS[0]);
   const [showWaiterMenu, setShowWaiterMenu] = useState(false);
+  const [pendingWaiter, setPendingWaiter]   = useState<typeof WAITERS[0] | null>(null);
+  const [pinInput, setPinInput]             = useState("");
+  const [pinError, setPinError]             = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [selectedTable, setSelectedTable]   = useState<number | null>(null);
   const [selectedCat, setSelectedCat]       = useState<string | null>(null);
@@ -59,6 +62,19 @@ export function GarsonClient() {
   }, [listenToOrders, listenToServiceRequests, fetchProductsAndCategories]);
 
   useEffect(() => { setCart([]); setNote(""); }, [selectedTable]);
+
+  useEffect(() => {
+    if (pendingWaiter && pinInput.length === 4) {
+      if (pinInput === pendingWaiter.pin) {
+        setActiveWaiter(pendingWaiter);
+        localStorage.setItem("activeWaiterId", pendingWaiter.id);
+        setPendingWaiter(null);
+      } else {
+        setPinError(true);
+        setTimeout(() => setPinInput(""), 300);
+      }
+    }
+  }, [pinInput, pendingWaiter]);
 
   const tables = Array.from({ length: totalTables }, (_, i) => i + 1);
 
@@ -182,7 +198,16 @@ export function GarsonClient() {
                 {WAITERS.map(w => (
                   <button
                     key={w.id}
-                    onClick={() => { setActiveWaiter(w); setShowWaiterMenu(false); }}
+                    onClick={() => { 
+                      if (activeWaiter.id === w.id) {
+                        setShowWaiterMenu(false);
+                      } else {
+                        setPendingWaiter(w);
+                        setPinInput("");
+                        setPinError(false);
+                        setShowWaiterMenu(false);
+                      }
+                    }}
                     className="w-full flex items-center gap-3 px-4 py-3 text-left transition-colors"
                     style={{
                       background: activeWaiter.id === w.id ? "#34343b" : "transparent",
@@ -721,6 +746,80 @@ export function GarsonClient() {
           onClose={() => setShowPaymentModal(null)}
         />
       )}
+
+      {/* PIN Modal */}
+      {pendingWaiter && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 px-4 backdrop-blur-sm">
+          <div className="bg-[#2a2930] w-full max-w-sm rounded-2xl border border-[#584237] p-6 shadow-2xl relative">
+            <button 
+              onClick={() => setPendingWaiter(null)}
+              className="absolute right-4 top-4 text-[#a78b7d] hover:text-white"
+            >
+              <X className="w-6 h-6" />
+            </button>
+            <div className="text-center mb-6">
+              <div 
+                className="w-16 h-16 rounded-full mx-auto flex items-center justify-center text-2xl font-bold mb-3"
+                style={{ background: pendingWaiter.color, color: "#fff" }}
+              >
+                {pendingWaiter.initials}
+              </div>
+              <h2 className="text-xl font-bold text-white">{pendingWaiter.name}</h2>
+              <p className="text-[#a78b7d] text-sm mt-1">Giriş yapmak için PIN girin</p>
+            </div>
+            
+            <div className="flex justify-center gap-3 mb-6">
+              {[0, 1, 2, 3].map(i => (
+                <div 
+                  key={i}
+                  className={cn(
+                    "w-12 h-14 rounded-xl border-2 flex items-center justify-center text-2xl font-bold transition-all",
+                    pinInput.length > i ? "border-[#f97316] text-white" : "border-[#584237] text-transparent"
+                  )}
+                >
+                  {pinInput.length > i ? "•" : ""}
+                </div>
+              ))}
+            </div>
+
+            {pinError && (
+              <p className="text-red-500 text-sm text-center mb-4 flex items-center justify-center gap-1 animate-pulse">
+                <AlertCircle className="w-4 h-4" /> Hatalı şifre, tekrar deneyin
+              </p>
+            )}
+
+            <div className="grid grid-cols-3 gap-3">
+              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 'C', 0, '<'].map(key => (
+                <button
+                  key={key}
+                  onClick={() => {
+                    if (key === 'C') {
+                      setPinInput("");
+                      setPinError(false);
+                    } else if (key === '<') {
+                      setPinInput(p => p.slice(0, -1));
+                      setPinError(false);
+                    } else {
+                      if (pinInput.length < 4) {
+                        setPinInput(p => p + key);
+                        setPinError(false);
+                      }
+                    }
+                  }}
+                  className={cn(
+                    "h-14 rounded-xl text-xl font-bold flex items-center justify-center transition-colors active:scale-95",
+                    typeof key === 'number' ? "bg-[#34343b] text-white hover:bg-[#404048]" :
+                    "bg-red-500/20 text-red-500 hover:bg-red-500/30"
+                  )}
+                >
+                  {key}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
