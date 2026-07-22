@@ -91,10 +91,7 @@ export const printKitchenReceipt = async (printerName: string, order: FirestoreO
   `;
 
   const config = qz.configs.create(printerName, {
-    margins: 0,
-    size: { width: 3, height: 10 },
-    units: 'in',
-    colorType: 'blackwhite' // Siyah-beyaz zorlaması
+    margins: 0
   });
 
   const data = [
