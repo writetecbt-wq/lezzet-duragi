@@ -46,60 +46,33 @@ export const printKitchenReceipt = async (printerName: string, order: FirestoreO
     if (!connected) throw new Error("QZ Tray is not connected.");
   }
 
-  const htmlContent = `
-    <html>
-    <head>
-      <meta charset="utf-8">
-      <style>
-        body { font-family: sans-serif; padding: 0; margin: 0; width: 100%; color: #000; font-size: 14px; }
-        .text-center { text-align: center; }
-        .font-bold { font-weight: bold; }
-        .title { font-size: 26px; margin-bottom: 5px; }
-        .subtitle { font-size: 12px; margin: 0 0 15px 0; }
-        .divider { border-top: 2px dashed #000; margin: 15px 0; }
-        .item-qty { font-weight: bold; font-size: 20px; padding-bottom: 8px; width: 30px; }
-        .item-name { font-size: 18px; padding-bottom: 8px; }
-        .notes-title { margin: 0 0 5px 0; font-size: 16px; }
-        .notes-content { font-size: 18px; font-weight: bold; margin: 0; }
-      </style>
-    </head>
-    <body>
-      <h2 class="text-center title">Masa ${order.tableNumber}</h2>
-      <p class="text-center subtitle">${new Date().toLocaleTimeString('tr-TR')} - Siparis #${order.id.slice(-4)}</p>
-      
-      <div class="divider"></div>
-      
-      <table style="width: 100%; text-align: left;">
-        ${order.items.map((item: any) => `
-            <tr>
-              <td class="item-qty" valign="top">${item.quantity}x</td>
-              <td class="item-name">${item.name}</td>
-            </tr>
-        `).join("")}
-      </table>
-      
-      ${order.notes ? `
-        <div class="divider"></div>
-        <h3 class="notes-title">Not:</h3>
-        <p class="notes-content">${order.notes}</p>
-      ` : ''}
-      
-      <div class="divider"></div>
-      <p class="text-center" style="font-size: 12px; margin-top: 20px;">Lezzet Duragi</p>
-    </body>
-    </html>
-  `;
-
   const config = qz.configs.create(printerName, {
     margins: 0
   });
 
+  const divider = "--------------------------------\n";
+  let text = `\n\n`;
+  text += `           MASA ${order.tableNumber}\n`;
+  text += `   ${new Date().toLocaleTimeString('tr-TR')} - Siparis #${order.id.slice(-4)}\n`;
+  text += divider;
+  
+  order.items.forEach((item: any) => {
+    text += `${item.quantity}x  ${item.name}\n`;
+  });
+  
+  if (order.notes) {
+    text += divider;
+    text += `NOT:\n${order.notes}\n`;
+  }
+  
+  text += divider;
+  text += `        Lezzet Duragi\n\n\n\n`;
+
   const data = [
     {
       type: 'pixel',
-      format: 'html',
-      flavor: 'plain',
-      data: htmlContent
+      format: 'plain',
+      data: text
     }
   ];
 
