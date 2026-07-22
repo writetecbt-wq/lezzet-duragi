@@ -80,16 +80,31 @@ export const printKitchenReceipt = async (printerName: string, order: FirestoreO
   text += `Kaynak: ${sourceText}\n`;
   text += divider;
   
-  text += `ADET    URUN ADI\n`;
-  text += divider;
+  // Group items by category (Food vs Drinks)
+  const drinks = order.items.filter((item: any) => item.categoryId === "cat_icecek_001");
+  const foods = order.items.filter((item: any) => item.categoryId !== "cat_icecek_001");
   
   let totalItems = 0;
-  order.items.forEach((item: any) => {
-    totalItems += item.quantity;
-    // Pad quantity for better alignment
-    const qtyStr = `${item.quantity}x`.padEnd(8, ' ');
-    text += `${qtyStr}${item.name}\n`;
-  });
+
+  if (foods.length > 0) {
+    text += `====== SICAK MUTFAK ======\n`;
+    foods.forEach((item: any) => {
+      totalItems += item.quantity;
+      const qtyStr = `${item.quantity}x`.padEnd(5, ' ');
+      text += `${qtyStr} ${item.name}\n`;
+    });
+    text += `\n`;
+  }
+
+  if (drinks.length > 0) {
+    text += `========= BAR ==========\n`;
+    drinks.forEach((item: any) => {
+      totalItems += item.quantity;
+      const qtyStr = `${item.quantity}x`.padEnd(5, ' ');
+      text += `${qtyStr} ${item.name}\n`;
+    });
+    text += `\n`;
+  }
   
   if (order.notes) {
     text += divider;
