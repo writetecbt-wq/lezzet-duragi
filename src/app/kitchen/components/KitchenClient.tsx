@@ -266,7 +266,8 @@ export function KitchenClient() {
       // Only print if it's PENDING and we haven't printed it yet
       if (order.status === "PENDING" && !printedOrdersRef.current.has(order.id)) {
         try {
-          await printKitchenReceipt(selectedPrinter, order);
+          const dailyOrderNumber = orders.length - orders.findIndex(o => o.id === order.id);
+          await printKitchenReceipt(selectedPrinter, order, dailyOrderNumber);
           printedOrdersRef.current.add(order.id);
         } catch (err) {
           console.error("Failed to print order", order.id, err);

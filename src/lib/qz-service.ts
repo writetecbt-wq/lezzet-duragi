@@ -39,7 +39,7 @@ export const getPrinters = async (): Promise<string[]> => {
   }
 };
 
-export const printKitchenReceipt = async (printerName: string, order: FirestoreOrder) => {
+export const printKitchenReceipt = async (printerName: string, order: FirestoreOrder, dailyOrderNumber?: number) => {
   const qz = await getQZ();
   if (!qz.websocket.isActive()) {
     const connected = await connectQZ();
@@ -75,6 +75,10 @@ export const printKitchenReceipt = async (printerName: string, order: FirestoreO
   text += thickDivider;
   text += `       *** YENI SIPARIS ***\n\n`;
   
+  if (dailyOrderNumber) {
+    text += `Sira No : BUGUNUN ${dailyOrderNumber}. SIPARISI\n`;
+  }
+  
   text += `Tarih : ${dateStr} - ${timeStr}\n`;
   text += `Yer   : ${tableText}\n`;
   text += `Kaynak: ${sourceText}\n`;
@@ -108,7 +112,10 @@ export const printKitchenReceipt = async (printerName: string, order: FirestoreO
   
   if (order.notes) {
     text += divider;
-    text += `NOT:\n${order.notes}\n`;
+    text += `********************************\n`;
+    text += `MUSTERI NOTU:\n`;
+    text += `${order.notes.toUpperCase()}\n`;
+    text += `********************************\n`;
   }
   
   text += divider;
