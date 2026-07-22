@@ -76,7 +76,7 @@ export const printKitchenReceipt = async (printerName: string, order: FirestoreO
   text += `       *** YENI SIPARIS ***\n\n`;
   
   if (dailyOrderNumber) {
-    text += `Sira No : BUGUNUN ${dailyOrderNumber}. SIPARISI\n`;
+    text += `Sira No: ${dailyOrderNumber}\n`;
   }
   
   text += `Tarih : ${dateStr} - ${timeStr}\n`;
